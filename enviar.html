@@ -586,6 +586,7 @@
             let code = "";
             try { code = (await error.context.json()).error; } catch {}
             if (code === "missing_api_key") toast("Falta configurar la clave de la IA en Supabase.", 5000);
+            else if (code === "no_credits") toast("Se acabaron los créditos de la IA. Recárgalos en console.anthropic.com → Billing.", 7000);
             else if (code === "refusal") toast("La IA no pudo escribir eso. Prueba con otras notas.", 4500);
             else toast("La IA no respondió. Intenta de nuevo.", 4000);
             return;
