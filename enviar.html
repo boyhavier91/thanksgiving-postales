@@ -135,6 +135,15 @@
   .help { background: #fff; border-radius: 12px; padding: 12px; font-size: 14px; border: 1px solid var(--line); margin-bottom: 12px; }
   .help ol { padding-left: 20px; } .help li { margin: 3px 0; }
 
+  .theme-btn { margin-top: 10px; width: 100%; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--line); background: #fff; border-radius: 12px; padding: 9px 12px; font-weight: 800; font-size: 14px; color: var(--ink); }
+  .theme-btn small { color: var(--muted); font-weight: 700; }
+  .themes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .theme-opt { border: 2px solid var(--line); background: #fff; border-radius: 14px; padding: 12px; text-align: left; display: grid; gap: 4px; }
+  .theme-opt.on { border-color: var(--accent); background: var(--accent-soft); }
+  .theme-opt .e { font-size: 26px; }
+  .theme-opt b { font-size: 15px; }
+  .theme-opt span { font-size: 12px; color: var(--muted); }
+  .theme-opt a { font-size: 13px; font-weight: 800; color: var(--accent); text-decoration: none; margin-top: 2px; }
   .toast {
     position: fixed; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom)); transform: translateX(-50%);
     background: #2b1a10; color: #fff; padding: 11px 16px; border-radius: 12px; font-weight: 700; font-size: 14px; z-index: 60;
@@ -235,10 +244,26 @@
     ["calido", "Cálido"], ["familiar", "Familiar"], ["divertido", "Divertido"], ["formal", "Formal"], ["espiritual", "Con fe"],
   ];
   const DED_SOFT_LIMIT = 240;
+  const THEMES_UI = [
+    { k: "clasica", e: "🍂", l: "Clásica", d: "Sobre, hojas y calabazas" },
+    { k: "neon", e: "🌴", l: "Neón Miami", d: "Estilo videojuego, palmeras y neón" },
+    { k: "familia", e: "🏡", l: "Familia", d: "Casa cálida y luces" },
+    { k: "besties", e: "💛", l: "Mejores amigos", d: "Polaroid, stickers y confeti" },
+    { k: "elevador", e: "🛗", l: "Elevadores", d: "Llama el elevador y se abre" },
+    { k: "amigos", e: "🥂", l: "Amigos", d: "Brindis y luces de fiesta" },
+  ];
+  const themeOf = (k) => THEMES_UI.find((t) => t.k === k) || THEMES_UI[0];
+  function themeSelectHtml(id, value) {
+    return '<select id="' + id + '">' + THEMES_UI.map((t) => '<option value="' + t.k + '"' + (t.k === value ? " selected" : "") + ">" + t.e + " " + t.l + "</option>").join("") + "</select>";
+  }
+  function demoLink(theme, lang) {
+    const base = new URL("./", location.href); base.search = ""; base.hash = "";
+    return base.href + "?demo=1&t=" + theme + "&l=" + (lang || "es");
+  }
 
   let user = null;
   let cards = [];
-  let settings = { signature: "", default_lang: "es", msg_es: "", msg_en: "" };
+  let settings = { signature: "", default_lang: "es", default_theme: "clasica", msg_es: "", msg_en: "" };
   let filter = "all";
   let query = "";
 
@@ -349,6 +374,7 @@
       display_name: (r.display_name || firstName(r.full_name)).slice(0, 60),
       phone: r.phone || null,
       lang: r.lang || settings.default_lang || "es",
+      theme: r.theme || settings.default_theme || "clasica",
     }));
     const { data, error } = await sb.from("cards").upsert(payload, { onConflict: "owner_id,phone", ignoreDuplicates: true }).select();
     if (error) { toast("Error al guardar: " + error.message, 5000); return 0; }
@@ -407,6 +433,7 @@
             <button class="mini" data-act="edit" type="button" aria-label="Editar">⋯</button>
           </div>
         </div>
+        <button class="theme-btn" data-act="theme" type="button"><span>${themeOf(c.theme).e} Tema: ${esc(themeOf(c.theme).l)}</span><small>Cambiar ▾</small></button>
         <button class="ded ${c.dedication ? "" : "empty"}" data-act="ded" type="button">${c.dedication ? "✍️ " + esc(c.dedication) : "✍️ Agregar dedicatoria (opcional)"}</button>
         <div class="send">
           <button class="btn sms" data-act="sms" type="button" ${noPhone ? "disabled" : ""}>💬 SMS</button>
@@ -427,6 +454,7 @@
     if (act === "view") window.open(cardLink(c) + "&preview=1", "_blank");
     else if (act === "edit") openEditSheet(c);
     else if (act === "ded") openDedicationSheet(c);
+    else if (act === "theme") openThemeSheet(c);
     else if (act === "sms") send(c, "sms");
     else if (act === "wa") send(c, "whatsapp");
     else if (act === "ms") send(c, "messenger");
@@ -535,7 +563,7 @@
         try {
           const { data, error } = await sb.functions.invoke("dedicatoria", {
             body: {
-              name: c.display_name, lang, tone,
+              name: c.display_name, lang, tone, theme: c.theme,
               relation: sheet.querySelector("#dRel").value,
               notes: sheet.querySelector("#dNotes").value,
               draft: improve ? ta.value : "",
@@ -565,6 +593,25 @@
     });
   }
 
+  function openThemeSheet(c) {
+    openSheet(`
+      <div class="sheet-head"><h3>Tema para ${esc(c.display_name)}</h3><button class="close" data-close type="button">✕</button></div>
+      <p class="muted" style="margin-bottom:12px">Toca un tema para elegirlo. "Ver ejemplo" abre una postal de muestra.</p>
+      <div class="themes">${THEMES_UI.map((t) => `
+        <button type="button" class="theme-opt ${t.k === c.theme ? "on" : ""}" data-k="${t.k}">
+          <div class="e">${t.e}</div><b>${t.l}</b><span>${t.d}</span>
+          <a href="${demoLink(t.k, c.lang)}" target="_blank" rel="noopener" data-demo>Ver ejemplo ↗</a>
+        </button>`).join("")}</div>
+    `, (sheet) => {
+      sheet.querySelector(".themes").addEventListener("click", async (e) => {
+        if (e.target.closest("[data-demo]")) return;
+        const b = e.target.closest("[data-k]"); if (!b) return;
+        const ok = await updateCard(c.id, { theme: b.dataset.k });
+        if (ok) { closeSheet(); toast("Tema: " + themeOf(b.dataset.k).l); }
+      });
+    });
+  }
+
   function openEditSheet(c) {
     let lang = c.lang;
     openSheet(`
@@ -573,6 +620,7 @@
       <label class="field"><span>Nombre completo</span><input id="eFull" type="text" maxlength="120" value="${esc(c.full_name)}"></label>
       <label class="field"><span>Teléfono</span><input id="ePhone" type="tel" value="${esc(c.phone || "")}" placeholder="(305) 555-1234"></label>
       <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:14px"><span class="muted"><b>Idioma</b></span>${segHtml("eLang", lang)}</div>
+      <label class="field"><span>Tema de la postal</span>${themeSelectHtml("eTheme", c.theme)}</label>
       <div class="row" style="margin-bottom:10px">
         <button class="btn primary" id="eSave" type="button" style="flex:1">Guardar</button>
       </div>
@@ -588,7 +636,7 @@
         const full_name = sheet.querySelector("#eFull").value.trim() || display_name;
         if (!display_name) { toast("El nombre no puede estar vacío."); return; }
         const phone = normalizePhone(sheet.querySelector("#ePhone").value) || null;
-        const ok = await updateCard(c.id, { display_name, full_name, phone, lang });
+        const ok = await updateCard(c.id, { display_name, full_name, phone, lang, theme: sheet.querySelector("#eTheme").value });
         if (ok) { closeSheet(); toast("Guardado."); }
       });
       sheet.querySelector("#eCopy").addEventListener("click", async () => {
@@ -614,6 +662,7 @@
       <label class="field"><span>Nombre que sale en la postal</span><input id="aDisplay" type="text" maxlength="60" placeholder="se llena solo con el primer nombre"></label>
       <label class="field"><span>Teléfono</span><input id="aPhone" type="tel" placeholder="(305) 555-1234"></label>
       <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:14px"><span class="muted"><b>Idioma</b></span>${segHtml("aLang", lang)}</div>
+      <label class="field"><span>Tema de la postal</span>${themeSelectHtml("aTheme", settings.default_theme || "clasica")}</label>
       <button class="btn primary block" id="aSave" type="button">Agregar</button>
     `, (sheet) => {
       const full = sheet.querySelector("#aFull"), disp = sheet.querySelector("#aDisplay");
@@ -625,7 +674,7 @@
       sheet.querySelector("#aSave").addEventListener("click", async () => {
         const f = full.value.trim();
         if (!f) { toast("Escribe el nombre."); return; }
-        const n = await insertContacts([{ full_name: f, display_name: disp.value.trim() || firstName(f), phone: normalizePhone(sheet.querySelector("#aPhone").value), lang }]);
+        const n = await insertContacts([{ full_name: f, display_name: disp.value.trim() || firstName(f), phone: normalizePhone(sheet.querySelector("#aPhone").value), lang, theme: sheet.querySelector("#aTheme").value }]);
         if (n) { closeSheet(); toast("Contacto agregado."); } else toast("Ese número ya estaba en la lista.");
       });
     });
@@ -646,6 +695,7 @@
         <div class="row"><button class="btn ghost" id="iAll" type="button">Todos</button><button class="btn ghost" id="iNone" type="button">Ninguno</button></div>
         ${segHtml("iLang", lang)}
       </div>
+      <label class="field"><span>Tema para estos contactos (luego puedes cambiarlo a cada uno)</span>${themeSelectHtml("iTheme", settings.default_theme || "clasica")}</label>
       <div class="import-list">
         ${items.map((r, i) => `
           <div class="import-item">
@@ -668,7 +718,7 @@
         const chosen = boxes().filter((b) => b.checked).map((b) => {
           const i = +b.dataset.i;
           const r = items[i];
-          return { full_name: r.full_name, display_name: sheet.querySelector(`[data-n="${i}"]`).value.trim() || r.display_name, phone: r.phone, lang };
+          return { full_name: r.full_name, display_name: sheet.querySelector(`[data-n="${i}"]`).value.trim() || r.display_name, phone: r.phone, lang, theme: sheet.querySelector("#iTheme").value };
         });
         if (!chosen.length) { toast("No seleccionaste ninguno."); return; }
         e.target.disabled = true; e.target.innerHTML = `<span class="spinner"></span> Guardando…`;
@@ -752,6 +802,7 @@
       <div class="sheet-head"><h3>Ajustes</h3><button class="close" data-close type="button">✕</button></div>
       <label class="field"><span>Tu firma en la postal</span><input id="sSig" type="text" maxlength="80" value="${esc(settings.signature || "")}" placeholder="ej: Con cariño, Javier"></label>
       <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:14px"><span class="muted"><b>Idioma por defecto</b></span>${segHtml("sLang", lang)}</div>
+      <label class="field"><span>Tema por defecto para contactos nuevos</span>${themeSelectHtml("sTheme", settings.default_theme || "clasica")}</label>
       <label class="field"><span>Mensaje en español</span><textarea id="sEs" maxlength="400">${esc(settings.msg_es || DEFAULT_MSG.es)}</textarea></label>
       <label class="field"><span>Message in English</span><textarea id="sEn" maxlength="400">${esc(settings.msg_en || DEFAULT_MSG.en)}</textarea></label>
       <p class="muted" style="margin:-4px 0 14px">Usa <b>{nombre}</b> y <b>{link}</b>; se reemplazan para cada persona.</p>
@@ -762,7 +813,7 @@
       sheet.querySelector("#sSave").addEventListener("click", async () => {
         const es = sheet.querySelector("#sEs").value.trim(), en = sheet.querySelector("#sEn").value.trim();
         if ((es && !es.includes("{link}")) || (en && !en.includes("{link}"))) { toast("Cada mensaje debe incluir {link}."); return; }
-        const row = { owner_id: user.id, signature: sheet.querySelector("#sSig").value.trim() || null, default_lang: lang, msg_es: es || null, msg_en: en || null, updated_at: new Date().toISOString() };
+        const row = { owner_id: user.id, signature: sheet.querySelector("#sSig").value.trim() || null, default_lang: lang, default_theme: sheet.querySelector("#sTheme").value, msg_es: es || null, msg_en: en || null, updated_at: new Date().toISOString() };
         const { data, error } = await sb.from("owner_settings").upsert(row).select().single();
         if (error) { toast("No se pudo guardar: " + error.message); return; }
         settings = Object.assign(settings, data);

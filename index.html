@@ -17,88 +17,72 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@700;900&family=Nunito:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Caveat:wght@600;700&family=Fredoka:wght@500;700&family=Great+Vibes&family=Nunito:wght@400;600;800&family=Playfair+Display:wght@700;900&family=VT323&family=Yellowtail&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --sky-1: #2a1530; --sky-2: #5b2338; --sky-3: #b5462a; --sky-4: #f0a04b;
-    --paper: #fff8ec; --ink: #4a2412; --accent: #c2410c; --gold: #c99a3b; --muted: #8a5a3c;
-  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
   body {
-    background: linear-gradient(180deg, var(--sky-1) 0%, var(--sky-2) 38%, var(--sky-3) 75%, var(--sky-4) 100%);
-    background-attachment: fixed;
-    color: var(--ink);
-    font-family: "Nunito", system-ui, sans-serif;
-    overflow: hidden;
-    -webkit-tap-highlight-color: transparent;
-    min-height: 100svh;
+    --page-bg: linear-gradient(180deg, #2a1530 0%, #5b2338 38%, #b5462a 75%, #f0a04b 100%);
+    --paper: #fff8ec; --ink: #4a2412; --accent: #c2410c; --name: #9a3412; --body: #5c3420; --muted: #8a5a3c;
+    --env-a: #f0c98f; --env-b: #e3b072; --env-back: #d9a86a; --flap-a: #e8b878; --flap-b: #d79a55; --seal-a: #d9402b; --seal-b: #8f1d12; --env-ink: #6b3412;
+    --tap-ink: #ffe7c4;
+    background: var(--page-bg); background-attachment: fixed;
+    color: var(--ink); font-family: "Nunito", system-ui, sans-serif;
+    overflow: hidden; -webkit-tap-highlight-color: transparent; min-height: 100svh;
   }
-  .glow {
-    position: fixed; left: 50%; bottom: -30vh; width: 140vmax; height: 80vmax; transform: translateX(-50%);
-    background: radial-gradient(ellipse at center, rgba(255, 196, 110, .55) 0%, rgba(255, 150, 60, .18) 35%, transparent 65%);
-    pointer-events: none; animation: breathe 6s ease-in-out infinite;
-  }
-  @keyframes breathe { 50% { opacity: .75; transform: translateX(-50%) scale(1.04); } }
-  .stars { position: fixed; inset: 0 0 50% 0; pointer-events: none; }
-  .stars i {
-    position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #fff3d6;
-    animation: twinkle 3s ease-in-out infinite;
-  }
-  @keyframes twinkle { 50% { opacity: .15; } }
-
-  /* Falling leaves */
-  #leaves { position: fixed; inset: 0; pointer-events: none; z-index: 1; overflow: hidden; }
-  .leaf { position: absolute; top: -60px; will-change: transform; animation: fall linear forwards; }
-  .leaf svg { display: block; animation: sway ease-in-out infinite alternate; }
-  @keyframes fall { to { transform: translate3d(var(--drift), 112vh, 0) rotate(var(--spin)); } }
-  @keyframes sway { from { transform: translateX(-18px) rotate(-25deg); } to { transform: translateX(18px) rotate(25deg); } }
-
+  .hidden { display: none !important; }
+  #scene { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+  #particles { position: fixed; inset: 0; pointer-events: none; z-index: 1; overflow: hidden; }
   .stage {
     position: relative; z-index: 2; min-height: 100svh; display: grid; place-items: center;
     padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
   }
 
-  /* Envelope */
-  .envelope-wrap { display: grid; justify-items: center; gap: 22px; cursor: pointer; animation: float 3.2s ease-in-out infinite; }
+  /* ---------- shared scene pieces ---------- */
+  .glow {
+    position: absolute; left: 50%; bottom: -30vh; width: 140vmax; height: 80vmax; transform: translateX(-50%);
+    background: radial-gradient(ellipse at center, rgba(255, 196, 110, .55) 0%, rgba(255, 150, 60, .18) 35%, transparent 65%);
+    animation: breathe 6s ease-in-out infinite;
+  }
+  @keyframes breathe { 50% { opacity: .75; transform: translateX(-50%) scale(1.04); } }
+  .stars i { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #fff3d6; animation: twinkle 3s ease-in-out infinite; }
+  @keyframes twinkle { 50% { opacity: .15; } }
+  .lights { position: absolute; top: 0; left: -2%; width: 104%; height: 90px; }
+  .lights circle { animation: bulb 2.4s ease-in-out infinite; }
+  @keyframes bulb { 50% { opacity: .45; } }
+  .bokeh i { position: absolute; border-radius: 50%; filter: blur(6px); animation: drift 9s ease-in-out infinite alternate; }
+  @keyframes drift { to { transform: translate(20px, -30px); } }
+
+  /* ---------- particles ---------- */
+  .pt { position: absolute; top: -60px; will-change: transform; animation: fall linear forwards; }
+  .pt svg { display: block; animation: sway ease-in-out infinite alternate; }
+  @keyframes fall { to { transform: translate3d(var(--drift), 112vh, 0) rotate(var(--spin)); } }
+  @keyframes sway { from { transform: translateX(-18px) rotate(-25deg); } to { transform: translateX(18px) rotate(25deg); } }
+  .pt.glowy svg { filter: drop-shadow(0 0 4px currentColor); }
+
+  /* ---------- intro: envelope ---------- */
+  .intro { display: grid; justify-items: center; gap: 22px; cursor: pointer; }
+  .envelope-wrap { animation: float 3.2s ease-in-out infinite; }
   @keyframes float { 50% { transform: translateY(-8px); } }
-  .envelope {
-    position: relative; width: min(78vw, 330px); aspect-ratio: 1.55; perspective: 900px;
-    filter: drop-shadow(0 18px 30px rgba(0,0,0,.35));
-  }
+  .envelope { position: relative; width: min(78vw, 330px); aspect-ratio: 1.55; perspective: 900px; filter: drop-shadow(0 18px 30px rgba(0,0,0,.35)); }
   .env-back, .env-front, .env-flap { position: absolute; inset: 0; border-radius: 10px; }
-  .env-back { background: #d9a86a; }
-  .env-peek {
-    position: absolute; left: 7%; right: 7%; top: 8%; height: 80%; background: var(--paper); border-radius: 6px;
-    transition: transform .8s cubic-bezier(.2,.8,.2,1) .35s;
-  }
-  .env-front {
-    background: linear-gradient(160deg, #f0c98f, #e3b072);
-    clip-path: polygon(0 0, 50% 55%, 100% 0, 100% 100%, 0 100%);
-  }
-  .env-flap {
-    background: linear-gradient(180deg, #e8b878, #d79a55);
-    clip-path: polygon(0 0, 100% 0, 50% 58%);
-    transform-origin: top center; transition: transform .6s ease-in; z-index: 3;
-  }
+  .env-back { background: var(--env-back); }
+  .env-peek { position: absolute; left: 7%; right: 7%; top: 8%; height: 80%; background: var(--paper); border-radius: 6px; transition: transform .8s cubic-bezier(.2,.8,.2,1) .35s; }
+  .env-front { background: linear-gradient(160deg, var(--env-a), var(--env-b)); clip-path: polygon(0 0, 50% 55%, 100% 0, 100% 100%, 0 100%); }
+  .env-flap { background: linear-gradient(180deg, var(--flap-a), var(--flap-b)); clip-path: polygon(0 0, 100% 0, 50% 58%); transform-origin: top center; transition: transform .6s ease-in; z-index: 3; }
   .seal {
     position: absolute; left: 50%; top: 50%; width: 50px; height: 50px; transform: translate(-50%, -50%);
-    border-radius: 50%; background: radial-gradient(circle at 35% 35%, #d9402b, #8f1d12 70%);
+    border-radius: 50%; background: radial-gradient(circle at 35% 35%, var(--seal-a), var(--seal-b) 70%);
     display: grid; place-items: center; font-size: 22px; z-index: 4;
-    box-shadow: 0 3px 8px rgba(0,0,0,.35), inset 0 -3px 6px rgba(0,0,0,.3);
-    transition: transform .4s ease, opacity .3s ease;
+    box-shadow: 0 3px 8px rgba(0,0,0,.35), inset 0 -3px 6px rgba(0,0,0,.3); transition: transform .4s ease, opacity .3s ease;
   }
-  .env-to {
-    position: absolute; left: 0; right: 0; bottom: 4%; text-align: center; z-index: 2;
-    font-family: "Great Vibes", cursive; font-size: clamp(26px, 8vw, 34px); color: #6b3412;
-  }
+  .env-to { position: absolute; left: 0; right: 0; bottom: 4%; text-align: center; z-index: 2; font-family: "Great Vibes", cursive; font-size: clamp(26px, 8vw, 34px); color: var(--env-ink); }
   .tap {
-    color: #ffe7c4; font-weight: 600; letter-spacing: .04em; font-size: 15px;
-    padding: 10px 20px; border: 1px solid rgba(255, 231, 196, .5); border-radius: 999px;
-    background: rgba(42, 21, 48, .35); backdrop-filter: blur(4px);
-    animation: pulse 1.8s ease-in-out infinite;
+    color: var(--tap-ink); font-weight: 600; letter-spacing: .04em; font-size: 15px; padding: 10px 20px;
+    border: 1px solid color-mix(in srgb, var(--tap-ink) 50%, transparent); border-radius: 999px;
+    background: rgba(30, 12, 30, .35); backdrop-filter: blur(4px); animation: pulse 1.8s ease-in-out infinite;
   }
-  @keyframes pulse { 50% { transform: scale(1.05); background: rgba(42,21,48,.5); } }
+  @keyframes pulse { 50% { transform: scale(1.05); } }
   .opening .env-flap { transform: rotateX(180deg); z-index: 0; }
   .opening .seal { transform: translate(-50%, -50%) scale(0); opacity: 0; }
   .opening .env-peek { transform: translateY(-40%); }
@@ -106,68 +90,256 @@
   .gone { animation: drop .6s ease-in forwards !important; }
   @keyframes drop { to { transform: translateY(40vh) scale(.8); opacity: 0; } }
 
-  /* Card */
+  /* ---------- intro: neon loading screen ---------- */
+  .loading { position: fixed; inset: 0; z-index: 5; display: grid; place-content: center; justify-items: center; gap: 18px; text-align: center; padding: 24px; cursor: pointer; }
+  .ld-title {
+    font-family: "Bebas Neue", sans-serif; font-size: clamp(54px, 17vw, 96px); letter-spacing: .04em; line-height: .9; color: transparent;
+    -webkit-text-stroke: 2px #ff3ea5; text-shadow: 0 0 12px rgba(255, 62, 165, .9), 0 0 32px rgba(255, 62, 165, .6); animation: flicker 3s infinite;
+  }
+  .ld-title small { display: block; font-size: .42em; -webkit-text-stroke: 1.5px #3ff3ff; text-shadow: 0 0 10px rgba(63, 243, 255, .9); letter-spacing: .25em; }
+  @keyframes flicker { 0%, 18%, 22%, 62%, 66%, 100% { opacity: 1; } 20%, 64% { opacity: .35; } }
+  .ld-for { font-family: "VT323", monospace; font-size: 24px; color: #ffe14d; letter-spacing: .08em; text-shadow: 0 0 8px rgba(255,225,77,.7); }
+  .ld-bar { width: min(70vw, 280px); height: 10px; border: 2px solid #3ff3ff; border-radius: 3px; box-shadow: 0 0 10px rgba(63,243,255,.6); overflow: hidden; }
+  .ld-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #ff3ea5, #ffe14d); animation: load 2.6s steps(26) forwards; }
+  @keyframes load { to { width: 100%; } }
+  .ld-tip { font-family: "VT323", monospace; font-size: 20px; color: #f1d9ff; min-height: 26px; }
+  .ld-start { font-family: "Bebas Neue", sans-serif; font-size: 30px; letter-spacing: .08em; color: #fff; background: transparent; border: 0; text-shadow: 0 0 10px #ff3ea5; animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .flash { position: fixed; inset: 0; background: #fff; z-index: 9; pointer-events: none; animation: flashOut .5s ease-out forwards; }
+  @keyframes flashOut { from { opacity: .9; } to { opacity: 0; } }
+
+  /* ---------- intro: elevator ---------- */
+  .elev { position: fixed; inset: 0; z-index: 5; display: grid; place-content: center; justify-items: center; gap: 16px; padding: 20px; }
+  .elev-display {
+    background: #0b0b0b; border: 3px solid #555d65; border-radius: 8px; padding: 4px 18px; min-width: 120px; text-align: center;
+    font-family: "VT323", monospace; font-size: 40px; line-height: 1; color: #ffb020; text-shadow: 0 0 8px rgba(255,176,32,.8);
+    box-shadow: inset 0 0 10px rgba(0,0,0,.9);
+  }
+  .elev-display .arr { font-size: 26px; vertical-align: 4px; margin-right: 8px; opacity: .35; }
+  .elev.moving .elev-display .arr { opacity: 1; animation: blink .6s steps(2) infinite; }
+  .elev-frame {
+    position: relative; width: min(84vw, 360px); height: min(60svh, 520px);
+    border: 10px solid #747d85; border-top-color: #8d969e; border-bottom-color: #5f676f; border-radius: 6px 6px 0 0; box-shadow: 0 20px 50px rgba(0,0,0,.5);
+  }
+  .elev-doors { position: relative; width: 100%; height: 100%; overflow: hidden; background: transparent; }
+  .door {
+    position: absolute; top: 0; bottom: 0; width: 50%;
+    background: repeating-linear-gradient(90deg, rgba(255,255,255,.10) 0 1px, transparent 1px 4px), linear-gradient(90deg, #9aa3ab, #d9dee2 45%, #b5bcc3 70%, #8c949b);
+    transition: transform 1.4s cubic-bezier(.6,0,.3,1);
+  }
+  .door.l { left: 0; border-right: 1px solid #6b737a; }
+  .door.r { right: 0; border-left: 1px solid #e8ecef; }
+  .elev.open .door.l { transform: translateX(-100%); }
+  .elev.open .door.r { transform: translateX(100%); }
+  .elev-call { display: grid; justify-items: center; gap: 10px; cursor: pointer; }
+  .call-btn {
+    width: 64px; height: 64px; border-radius: 50%; border: 5px solid #aab2b9; background: radial-gradient(circle at 40% 35%, #f4f6f8, #b9c0c6);
+    font-size: 24px; color: #5f676f; display: grid; place-items: center; box-shadow: 0 4px 10px rgba(0,0,0,.4);
+  }
+  .elev.called .call-btn { color: #fff; background: radial-gradient(circle at 40% 35%, #ffd27a, #ff9d00); box-shadow: 0 0 22px rgba(255,170,0,.9); }
+  .elev.open .elev-frame { transition: opacity .6s ease 1.2s; opacity: 0; }
+  .elev.open .elev-display, .elev.open .elev-call { transition: opacity .4s ease; opacity: 0; }
+
+  /* ---------- card (base = clasica) ---------- */
   .card {
     width: min(92vw, 430px); background: var(--paper); border-radius: 18px; position: relative;
-    padding: 26px 24px 26px; text-align: center; display: none;
+    padding: 26px 24px; text-align: center; display: none;
     box-shadow: 0 30px 60px rgba(30, 8, 20, .45), 0 0 0 1px rgba(201, 154, 59, .25);
-    background-image:
-      radial-gradient(circle at 20% 10%, rgba(240, 160, 75, .10), transparent 40%),
-      radial-gradient(circle at 80% 90%, rgba(194, 65, 12, .08), transparent 45%);
   }
-  .card::before {
-    content: ""; position: absolute; inset: 10px; border: 1.5px solid rgba(201, 154, 59, .55); border-radius: 12px; pointer-events: none;
-  }
+  .card::before { content: ""; position: absolute; inset: 10px; border: 1.5px solid rgba(201, 154, 59, .55); border-radius: 12px; pointer-events: none; }
   .card.show { display: block; animation: rise .9s cubic-bezier(.2,.9,.25,1.15) both; }
   @keyframes rise { from { transform: translateY(30px) scale(.85) rotate(-2deg); opacity: 0; } to { transform: none; opacity: 1; } }
-  .art { width: 100%; max-width: 300px; height: auto; margin: 0 auto 4px; display: block; }
-  .art .pumpkin { transform-box: fill-box; transform-origin: bottom center; }
-  .card.show .art .pumpkin { animation: bounceIn .7s cubic-bezier(.3,1.6,.5,1) both; }
-  .card.show .art .p2 { animation-delay: .15s; } .card.show .art .p3 { animation-delay: .3s; }
+  .art { margin: 0 auto 4px; }
+  .art svg { width: 100%; max-width: 300px; height: auto; display: block; margin: 0 auto; }
+  .card.show .pop { transform-box: fill-box; transform-origin: bottom center; animation: bounceIn .7s cubic-bezier(.3,1.6,.5,1) both; }
+  .card.show .pop.d1 { animation-delay: .15s; } .card.show .pop.d2 { animation-delay: .3s; }
   @keyframes bounceIn { from { transform: scale(0); } }
-  .card.show .art .sprig { animation: fadeIn .8s ease .5s both; }
-
-  .happy {
-    font-family: "Great Vibes", cursive; color: var(--accent); font-size: clamp(44px, 14vw, 60px); line-height: 1; margin-top: 4px;
-  }
-  .thanks {
-    font-family: "Playfair Display", serif; font-weight: 900; color: var(--ink);
-    font-size: clamp(30px, 10.5vw, 46px); letter-spacing: .01em; line-height: 1.05; white-space: nowrap;
-  }
+  .card.show .fade { animation: fadeIn .8s ease .5s both; }
+  .kicker:empty, .tagline:empty, .extra:empty { display: none; }
+  .happy { font-family: "Great Vibes", cursive; color: var(--accent); font-size: clamp(44px, 14vw, 60px); line-height: 1; margin-top: 4px; }
+  .thanks { font-family: "Playfair Display", serif; font-weight: 900; color: var(--ink); font-size: clamp(30px, 10.5vw, 46px); line-height: 1.05; white-space: nowrap; }
   .ch { display: inline-block; opacity: 0; }
   .card.show .happy .ch { animation: dropIn .6s cubic-bezier(.3,1.5,.5,1) both; animation-delay: calc(.6s + var(--i) * 70ms); }
   .card.show .thanks .ch { animation: riseIn .55s cubic-bezier(.2,1.4,.4,1) both; animation-delay: calc(1.1s + var(--i) * 55ms); }
   @keyframes dropIn { from { opacity: 0; transform: translateY(-40px) rotate(-12deg); } to { opacity: 1; transform: none; } }
   @keyframes riseIn { from { opacity: 0; transform: translateY(24px) scale(.6); } to { opacity: 1; transform: none; } }
-  .card.show .thanks { animation: shimmer 2.2s ease 2.1s both; }
-  @keyframes shimmer { 40% { text-shadow: 0 0 18px rgba(240, 160, 75, .8); } }
-
+  .tagline { margin-top: 8px; font-style: italic; color: var(--muted); font-size: 16px; opacity: 0; }
+  .card.show .tagline, .card.show .kicker, .card.show .extra { animation: fadeIn .7s ease 1.9s both; }
+  .kicker, .extra { opacity: 0; }
   .divider { display: block; width: 120px; height: 14px; margin: 12px auto 8px; opacity: 0; }
   .card.show .divider { animation: fadeIn .6s ease 2s both; }
-
   .name {
-    font-family: "Great Vibes", cursive; color: #9a3412; font-size: clamp(42px, 13vw, 58px); line-height: 1.15;
+    font-family: "Great Vibes", cursive; color: var(--name); font-size: clamp(42px, 13vw, 58px); line-height: 1.15;
     clip-path: inset(0 100% 0 0); padding: 0 8px; display: block; width: fit-content; margin: 0 auto; max-width: 100%;
   }
   .card.show .name { animation: write 1.6s ease-in-out 2.3s forwards; }
   @keyframes write { to { clip-path: inset(0 -10% 0 0); } }
-
-  .dedication { font-size: 17px; line-height: 1.55; color: #5c3420; margin: 10px 6px 0; min-height: 0; }
+  .dedication { font-size: 17px; line-height: 1.55; color: var(--body); margin: 10px 6px 0; }
   .w { display: inline-block; opacity: 0; white-space: pre; }
   .card.show .w { animation: wordIn .5s ease both; animation-delay: calc(3.8s + var(--i) * 75ms); }
   @keyframes wordIn { from { opacity: 0; transform: translateY(8px); filter: blur(3px); } to { opacity: 1; transform: none; filter: none; } }
-
   .signature { font-family: "Great Vibes", cursive; font-size: 30px; color: var(--accent); margin-top: 12px; opacity: 0; }
   .card.show .signature { animation: fadeIn .9s ease both; animation-delay: var(--sig-delay, 4.4s); }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-
-  .actions { margin-top: 18px; display: flex; justify-content: center; gap: 10px; opacity: 0; }
+  .actions { margin-top: 18px; display: flex; justify-content: center; opacity: 0; }
   .card.show .actions { animation: fadeIn .6s ease both; animation-delay: calc(var(--sig-delay, 4.4s) + .8s); }
-  .actions button {
-    font: 600 14px "Nunito", sans-serif; color: var(--muted); background: transparent; border: 1px solid rgba(138, 90, 60, .35);
-    padding: 8px 16px; border-radius: 999px; cursor: pointer;
+  .actions button { font: 600 14px "Nunito", sans-serif; color: var(--muted); background: transparent; border: 1px solid color-mix(in srgb, var(--muted) 45%, transparent); padding: 8px 16px; border-radius: 999px; cursor: pointer; }
+
+  /* ================= THEME: neon ================= */
+  body[data-theme="neon"] {
+    --page-bg: linear-gradient(180deg, #0d0221 0%, #2a0845 40%, #6a0f5c 62%, #ff3ea5 82%, #ff9a3c 100%);
+    --ink: #fff; --accent: #3ff3ff; --name: #ff3ea5; --body: #f3e6ff; --muted: #c7a6e6; --tap-ink: #fff;
   }
-  .actions button:active { transform: scale(.96); }
+  .sun {
+    position: absolute; left: 50%; bottom: 30vh; width: min(70vw, 340px); aspect-ratio: 1; transform: translate(-50%, 50%); border-radius: 50%;
+    background: linear-gradient(180deg, #ffe14d 0%, #ff9a3c 45%, #ff3ea5 100%);
+    -webkit-mask-image: linear-gradient(180deg, #000 52%, transparent 52% 56%, #000 56% 64%, transparent 64% 69%, #000 69% 76%, transparent 76% 82%, #000 82% 88%, transparent 88% 94%, #000 94%);
+    mask-image: linear-gradient(180deg, #000 52%, transparent 52% 56%, #000 56% 64%, transparent 64% 69%, #000 69% 76%, transparent 76% 82%, #000 82% 88%, transparent 88% 94%, #000 94%);
+    filter: drop-shadow(0 0 30px rgba(255, 62, 165, .7));
+  }
+  .grid {
+    position: absolute; left: -50vw; bottom: 0; width: 200vw; height: 32vh;
+    background: linear-gradient(180deg, #2a0845, #0d0221);
+    background-image: linear-gradient(rgba(255,62,165,.9) 2px, transparent 2px), linear-gradient(90deg, rgba(255,62,165,.9) 2px, transparent 2px);
+    background-size: 56px 56px; transform: perspective(260px) rotateX(62deg); transform-origin: bottom;
+    animation: gridmove .9s linear infinite; -webkit-mask-image: linear-gradient(180deg, transparent, #000 12%); mask-image: linear-gradient(180deg, transparent, #000 12%);
+  }
+  .grid-base { position: absolute; left: 0; right: 0; bottom: 0; height: 32vh; background: #12002b; }
+  @keyframes gridmove { to { background-position: 0 56px; } }
+  .palm { position: absolute; bottom: 28vh; width: min(40vw, 190px); height: auto; }
+  .palm.l { left: -4vw; } .palm.r { right: -4vw; transform: scaleX(-1); }
+  body[data-theme="neon"] .card {
+    background: rgba(16, 2, 40, .82); backdrop-filter: blur(6px); border: 2px solid #ff3ea5; border-radius: 14px;
+    box-shadow: 0 0 16px rgba(255,62,165,.9), 0 0 46px rgba(63,243,255,.35), inset 0 0 24px rgba(255,62,165,.25);
+  }
+  body[data-theme="neon"] .card::before { border-color: rgba(63, 243, 255, .5); border-radius: 8px; }
+  body[data-theme="neon"] .kicker { font-family: "VT323", monospace; font-size: 22px; color: #7dff7a; letter-spacing: .1em; text-shadow: 0 0 8px rgba(125,255,122,.8); margin-bottom: 2px; }
+  body[data-theme="neon"] .happy { font-family: "Bebas Neue", sans-serif; font-size: clamp(30px, 9vw, 40px); letter-spacing: .3em; color: #3ff3ff; text-shadow: 0 0 10px rgba(63,243,255,.9); margin-top: 0; }
+  body[data-theme="neon"] .thanks { font-family: "Bebas Neue", sans-serif; font-weight: 400; font-size: clamp(54px, 17vw, 78px); letter-spacing: .03em; color: #fff; text-shadow: 0 0 6px #ff3ea5, 0 0 18px #ff3ea5, 0 0 36px rgba(255,62,165,.7); line-height: .95; }
+  body[data-theme="neon"] .tagline { font-style: normal; font-family: "VT323", monospace; font-size: 21px; color: #ffe14d; text-shadow: 0 0 6px rgba(255,225,77,.6); }
+  body[data-theme="neon"] .extra { font-family: "VT323", monospace; font-size: 20px; color: #f3e6ff; margin-top: 4px; }
+  body[data-theme="neon"] .extra .st { color: #ffe14d; text-shadow: 0 0 8px rgba(255,225,77,.9); display: inline-block; }
+  body.neon-on .card.show .extra .st { animation: starPop .4s cubic-bezier(.3,1.8,.5,1) both; animation-delay: calc(2.2s + var(--i) * 120ms); }
+  @keyframes starPop { from { transform: scale(0) rotate(-90deg); opacity: 0; } }
+  body[data-theme="neon"] .name { font-family: "Yellowtail", cursive; text-shadow: 0 0 8px rgba(255,62,165,.9), 0 0 22px rgba(255,62,165,.6); }
+  body[data-theme="neon"] .signature { font-family: "Yellowtail", cursive; color: #3ff3ff; text-shadow: 0 0 8px rgba(63,243,255,.8); font-size: 26px; }
+  body[data-theme="neon"] .divider path:first-child { stroke: #3ff3ff; } body[data-theme="neon"] .divider path:last-child { fill: #ff3ea5; }
+  .neon-badge { width: 92px; height: 92px; margin: 2px auto 6px; border-radius: 50%; border: 3px solid #3ff3ff; display: grid; place-items: center; font-size: 46px; box-shadow: 0 0 14px rgba(63,243,255,.9), inset 0 0 14px rgba(63,243,255,.5); }
+  .card.show .neon-badge { animation: bounceIn .7s cubic-bezier(.3,1.6,.5,1) .2s both, spinGlow 4s ease-in-out 1s infinite; }
+  @keyframes spinGlow { 50% { box-shadow: 0 0 26px rgba(255,62,165,.95), inset 0 0 18px rgba(255,62,165,.6); border-color: #ff3ea5; } }
+
+  /* ================= THEME: familia ================= */
+  body[data-theme="familia"] {
+    --page-bg: linear-gradient(180deg, #24100b 0%, #4a1d12 45%, #8a3a1f 80%, #c4652f 100%);
+    --paper: #fffaf2; --ink: #5b1a12; --accent: #9f2a1b; --name: #7f1d1d; --body: #4a2a1c; --muted: #8a5a3c;
+    --env-a: #f3d7b4; --env-b: #e5bd8e; --env-back: #d6a872; --flap-a: #ecc794; --flap-b: #d9a66c; --seal-a: #2f6b3a; --seal-b: #173d1f;
+  }
+  body[data-theme="familia"] .card { padding-top: 34px; }
+  body[data-theme="familia"] .card::after {
+    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 16px; border-radius: 18px 18px 0 0;
+    background: repeating-linear-gradient(90deg, rgba(159,42,27,.85) 0 10px, transparent 10px 20px), repeating-linear-gradient(0deg, rgba(159,42,27,.55) 0 8px, #fff6ea 8px 16px);
+  }
+  body[data-theme="familia"] .card::before { border-color: rgba(47, 107, 58, .35); top: 24px; }
+  .win { animation: winGlow 2.6s ease-in-out infinite; }
+  @keyframes winGlow { 50% { fill: #fde68a; } }
+  .smoke { animation: smoke 3s ease-in infinite; transform-box: fill-box; transform-origin: center; }
+  .smoke.s2 { animation-delay: 1.5s; }
+  @keyframes smoke { from { transform: translateY(0) scale(.6); opacity: 0; } 30% { opacity: 1; } to { transform: translateY(-26px) scale(1.1); opacity: 0; } }
+
+  /* ================= THEME: besties ================= */
+  body[data-theme="besties"] {
+    --page-bg: linear-gradient(160deg, #ffc8d8 0%, #ffe2c2 45%, #d8c8ff 100%);
+    --paper: #ffffff; --ink: #3b2a4a; --accent: #e0457b; --name: #7c3aed; --body: #3b2a4a; --muted: #8b6f9e; --tap-ink: #5b3a7a;
+    --env-a: #ffd1e1; --env-b: #ffb3cd; --env-back: #f79bbd; --flap-a: #ffc2d8; --flap-b: #f6a0c1; --seal-a: #8b5cf6; --seal-b: #5b21b6; --env-ink: #6d28d9;
+  }
+  body[data-theme="besties"] .tap { background: rgba(255,255,255,.55); }
+  .doodles svg { position: absolute; opacity: .55; }
+  body[data-theme="besties"] .card { border-radius: 6px; padding: 16px 16px 24px; transform-origin: center; box-shadow: 0 24px 50px rgba(90, 40, 110, .25); }
+  body[data-theme="besties"] .card.show { animation: rise .9s cubic-bezier(.2,.9,.25,1.15) both, tilt 0s linear 1s forwards; }
+  @keyframes tilt { to { transform: rotate(-1.5deg); } }
+  body[data-theme="besties"] .card::before { inset: auto; left: -14px; top: -10px; width: 92px; height: 28px; border: 0; border-radius: 2px; background: rgba(255, 214, 102, .75); transform: rotate(-28deg); }
+  body[data-theme="besties"] .card::after { content: ""; position: absolute; right: -14px; top: -10px; width: 92px; height: 28px; background: rgba(167, 139, 250, .7); transform: rotate(24deg); border-radius: 2px; }
+  .photo { position: relative; height: 150px; border-radius: 3px; background: linear-gradient(135deg, #ffb3cd, #ffd98a 55%, #b9a3ff); display: grid; place-items: center; overflow: hidden; }
+  .photo .duo { font-size: 58px; letter-spacing: 4px; }
+  .card.show .photo .duo span { display: inline-block; animation: hop 1s ease-in-out infinite alternate; }
+  .card.show .photo .duo span:nth-child(2) { animation-delay: .2s; } .card.show .photo .duo span:nth-child(3) { animation-delay: .4s; }
+  @keyframes hop { to { transform: translateY(-10px) rotate(6deg); } }
+  .sticker { position: absolute; right: 10px; bottom: 10px; background: #fff; color: #e0457b; font: 700 22px "Caveat", cursive; padding: 2px 12px; border-radius: 999px; transform: rotate(-10deg); box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+  .card.show .sticker { animation: bounceIn .6s cubic-bezier(.3,1.8,.5,1) 1.2s both; }
+  body[data-theme="besties"] .happy { font-family: "Caveat", cursive; font-weight: 700; font-size: clamp(42px, 13vw, 56px); margin-top: 12px; }
+  body[data-theme="besties"] .thanks { font-family: "Caveat", cursive; font-weight: 700; font-size: clamp(44px, 14vw, 60px); line-height: .9; }
+  body[data-theme="besties"] .tagline { font-family: "Caveat", cursive; font-style: normal; font-size: 24px; color: #e0457b; }
+  body[data-theme="besties"] .name { font-family: "Caveat", cursive; font-weight: 700; font-size: clamp(46px, 14vw, 62px); }
+  body[data-theme="besties"] .signature { font-family: "Caveat", cursive; font-size: 30px; color: #e0457b; }
+  body[data-theme="besties"] .dedication { font-size: 17px; }
+  body[data-theme="besties"] .divider path:first-child { stroke: #f9a8d4; } body[data-theme="besties"] .divider path:last-child { fill: #8b5cf6; }
+
+  /* ================= THEME: elevador ================= */
+  body[data-theme="elevador"] {
+    --page-bg: linear-gradient(90deg, rgba(0,0,0,.25), transparent 15%, transparent 85%, rgba(0,0,0,.25)), repeating-linear-gradient(90deg, #6f7984 0 2px, #808a95 2px 7px);
+    --paper: #eef1f3; --ink: #1f2933; --accent: #b45309; --name: #b45309; --body: #2f3b46; --muted: #5f6b76; --tap-ink: #ffffff;
+  }
+  .lamp { position: absolute; left: 50%; top: 0; width: 140vw; height: 60vh; transform: translateX(-50%); background: radial-gradient(ellipse at top, rgba(255, 244, 214, .55), transparent 60%); }
+  .rail { position: absolute; left: 0; right: 0; top: 64vh; height: 10px; background: linear-gradient(180deg, #e9edf0, #8c949b); box-shadow: 0 3px 6px rgba(0,0,0,.35); }
+  body[data-theme="elevador"] .card {
+    border-radius: 10px; padding: 18px 22px 22px;
+    background: repeating-linear-gradient(90deg, rgba(255,255,255,.35) 0 1px, transparent 1px 3px), linear-gradient(180deg, #f3f5f7, #d5dbe0);
+    box-shadow: 0 26px 50px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.7);
+  }
+  body[data-theme="elevador"] .card::before {
+    inset: 8px; border: 0; border-radius: 6px;
+    background: radial-gradient(circle, #8c949b 0 3px, transparent 4px) 0 0 / 100% 100% no-repeat;
+    background:
+      radial-gradient(circle at 6px 6px, #9aa3ab 3px, transparent 4px),
+      radial-gradient(circle at calc(100% - 6px) 6px, #9aa3ab 3px, transparent 4px),
+      radial-gradient(circle at 6px calc(100% - 6px), #9aa3ab 3px, transparent 4px),
+      radial-gradient(circle at calc(100% - 6px) calc(100% - 6px), #9aa3ab 3px, transparent 4px);
+  }
+  .disp {
+    margin: 4px auto 10px; width: fit-content; min-width: 210px; background: #0b0b0b; border-radius: 6px; padding: 6px 16px;
+    font-family: "VT323", monospace; font-size: 28px; line-height: 1; color: #ffb020; text-shadow: 0 0 8px rgba(255,176,32,.8);
+    border: 3px solid #8c949b; box-shadow: inset 0 0 10px #000;
+  }
+  .disp .arr { display: inline-block; margin-right: 6px; }
+  .card.show .disp .arr { animation: upArrow 1s ease-in-out infinite; }
+  @keyframes upArrow { 50% { transform: translateY(-4px); opacity: .5; } }
+  body[data-theme="elevador"] .happy { font-family: "Nunito", sans-serif; font-weight: 800; font-size: clamp(22px, 7vw, 28px); letter-spacing: .35em; color: #5f6b76; text-transform: uppercase; }
+  body[data-theme="elevador"] .thanks { font-family: "Playfair Display", serif; color: #1f2933; }
+  body[data-theme="elevador"] .tagline { font-style: normal; font-weight: 800; color: #b45309; letter-spacing: .02em; }
+  body[data-theme="elevador"] .divider path:first-child { stroke: #9aa3ab; }
+  .buttons { display: flex; justify-content: center; gap: 14px; margin-top: 16px; }
+  .buttons span { width: 40px; height: 40px; border-radius: 50%; border: 3px solid #aab2b9; background: radial-gradient(circle at 40% 35%, #fbfcfd, #c2c9cf); display: grid; place-items: center; font-size: 16px; color: #5f676f; }
+  .buttons span.lit { color: #fff; background: radial-gradient(circle at 40% 35%, #ffd27a, #ff9d00); box-shadow: 0 0 14px rgba(255,170,0,.85); }
+  .card.show .buttons span.lit { animation: litPulse 1.6s ease-in-out infinite; }
+  @keyframes litPulse { 50% { box-shadow: 0 0 4px rgba(255,170,0,.4); } }
+
+  /* ================= THEME: amigos ================= */
+  body[data-theme="amigos"] {
+    --page-bg: linear-gradient(180deg, #071c21 0%, #0f3a40 50%, #1f5b5c 80%, #d97a3a 130%);
+    --paper: #12353b; --ink: #fff3dc; --accent: #ffcf70; --name: #ffb36b; --body: #e8f1ee; --muted: #a9c7c3; --tap-ink: #fff3dc;
+    --env-a: #f6d29a; --env-b: #eab36a; --env-back: #d99a52; --flap-a: #f0c27e; --flap-b: #dc9d50; --seal-a: #14858a; --seal-b: #0b4d52; --env-ink: #0f3a40;
+  }
+  body[data-theme="amigos"] .card { box-shadow: 0 30px 60px rgba(0,0,0,.5), 0 0 0 1px rgba(255,207,112,.25); }
+  body[data-theme="amigos"] .card::before { border-color: rgba(255, 207, 112, .35); }
+  body[data-theme="amigos"] .happy { font-family: "Fredoka", sans-serif; font-weight: 700; font-size: clamp(34px, 11vw, 46px); color: #ffcf70; }
+  body[data-theme="amigos"] .thanks { font-family: "Fredoka", sans-serif; font-weight: 700; color: #fff3dc; font-size: clamp(38px, 12.5vw, 54px); }
+  body[data-theme="amigos"] .tagline { font-style: normal; font-family: "Fredoka", sans-serif; font-weight: 500; color: #7fd6cf; font-size: 18px; }
+  body[data-theme="amigos"] .divider path:first-child { stroke: #ffcf70; } body[data-theme="amigos"] .divider path:last-child { fill: #7fd6cf; }
+  .trio { font-size: 46px; letter-spacing: 8px; margin: 10px 0 2px; }
+  .card.show .trio span { display: inline-block; animation: cheers 1.2s ease-in-out 1s infinite alternate; }
+  .card.show .trio span:first-child { transform-origin: bottom right; } .card.show .trio span:last-child { transform-origin: bottom left; animation-name: cheersR; }
+  .card.show .trio span:nth-child(2) { animation-name: bob; }
+  @keyframes cheers { to { transform: rotate(14deg) translateX(6px); } }
+  @keyframes cheersR { to { transform: rotate(-14deg) translateX(-6px); } }
+  @keyframes bob { to { transform: translateY(-6px); } }
+  .card-lights { width: 100%; height: 34px; display: block; margin-top: -6px; }
+  .card-lights circle { animation: bulb 1.8s ease-in-out infinite; }
+
+  .sound {
+    position: fixed; z-index: 8; top: max(14px, env(safe-area-inset-top)); right: 14px; width: 44px; height: 44px; border-radius: 50%;
+    border: 1px solid rgba(255,255,255,.35); background: rgba(20, 10, 25, .45); color: #fff; font-size: 19px; backdrop-filter: blur(6px);
+    display: grid; place-items: center; cursor: pointer; animation: fadeIn .5s ease both;
+  }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important; }
@@ -175,56 +347,20 @@
   }
 </style>
 </head>
-<body>
-<div class="glow"></div>
-<div class="stars" id="stars"></div>
-<div id="leaves"></div>
+<body data-theme="clasica">
+<div id="scene"></div>
+<div id="particles"></div>
+<button class="sound hidden" id="soundBtn" type="button" aria-label="Music on/off">🔊</button>
 
 <main class="stage">
-  <div class="envelope-wrap" id="envWrap" role="button" tabindex="0" aria-label="Open card">
-    <div class="envelope">
-      <div class="env-back"></div>
-      <div class="env-peek"></div>
-      <div class="env-front"></div>
-      <div class="env-flap"></div>
-      <div class="seal">🍁</div>
-      <div class="env-to" id="envTo"></div>
-    </div>
-    <div class="tap" id="tapLabel">Tap to open</div>
-  </div>
-
+  <div id="intro"></div>
   <article class="card" id="card" aria-live="polite">
-    <svg class="art" viewBox="0 0 300 120" aria-hidden="true">
-      <g class="sprig">
-        <path d="M30 100 C 60 60, 90 50, 120 70" stroke="#a16207" stroke-width="3" fill="none" stroke-linecap="round"/>
-        <path d="M270 100 C 240 60, 210 50, 180 70" stroke="#a16207" stroke-width="3" fill="none" stroke-linecap="round"/>
-        <g fill="#d97706"><ellipse cx="55" cy="74" rx="9" ry="4" transform="rotate(-35 55 74)"/><ellipse cx="75" cy="62" rx="9" ry="4" transform="rotate(-25 75 62)"/><ellipse cx="97" cy="58" rx="9" ry="4" transform="rotate(-5 97 58)"/></g>
-        <g fill="#d97706"><ellipse cx="245" cy="74" rx="9" ry="4" transform="rotate(35 245 74)"/><ellipse cx="225" cy="62" rx="9" ry="4" transform="rotate(25 225 62)"/><ellipse cx="203" cy="58" rx="9" ry="4" transform="rotate(5 203 58)"/></g>
-        <path transform="translate(14 84) rotate(-20) scale(1.1)" d="M12 0 l2.2 5.2 l3.6 -1.6 l-1 4.4 l4.6 -.4 l-3 3.4 l3.4 2.4 l-5.2 .6 l.8 4.4 l-4.2 -2.6 l-.6 4.8 h-1.2 l-.6 -4.8 l-4.2 2.6 l.8 -4.4 l-5.2 -.6 l3.4 -2.4 l-3 -3.4 l4.6 .4 l-1 -4.4 l3.6 1.6 z" fill="#b91c1c"/>
-        <path transform="translate(262 78) rotate(20) scale(1.1)" d="M12 0 l2.2 5.2 l3.6 -1.6 l-1 4.4 l4.6 -.4 l-3 3.4 l3.4 2.4 l-5.2 .6 l.8 4.4 l-4.2 -2.6 l-.6 4.8 h-1.2 l-.6 -4.8 l-4.2 2.6 l.8 -4.4 l-5.2 -.6 l3.4 -2.4 l-3 -3.4 l4.6 .4 l-1 -4.4 l3.6 1.6 z" fill="#c2410c"/>
-      </g>
-      <g class="pumpkin p1">
-        <ellipse cx="105" cy="92" rx="34" ry="24" fill="#ea580c"/>
-        <ellipse cx="105" cy="92" rx="14" ry="24" fill="#f97316"/>
-        <path d="M80 92 q25 -30 50 0" stroke="#c2410c" stroke-width="2" fill="none" opacity=".5"/>
-        <rect x="102" y="62" width="6" height="10" rx="2" fill="#65a30d"/>
-      </g>
-      <g class="pumpkin p2">
-        <ellipse cx="160" cy="88" rx="42" ry="30" fill="#f97316"/>
-        <ellipse cx="160" cy="88" rx="18" ry="30" fill="#fb923c"/>
-        <ellipse cx="160" cy="88" rx="32" ry="30" fill="none" stroke="#ea580c" stroke-width="2" opacity=".6"/>
-        <path d="M158 58 q2 -10 8 -12" stroke="#4d7c0f" stroke-width="5" fill="none" stroke-linecap="round"/>
-        <path d="M166 54 q14 -6 18 4 q-10 4 -18 -4" fill="#65a30d"/>
-      </g>
-      <g class="pumpkin p3">
-        <ellipse cx="212" cy="98" rx="24" ry="17" fill="#fbbf24"/>
-        <ellipse cx="212" cy="98" rx="9" ry="17" fill="#fcd34d"/>
-        <rect x="210" y="77" width="5" height="8" rx="2" fill="#65a30d"/>
-      </g>
-    </svg>
-
+    <div class="art" id="art"></div>
+    <div class="kicker" id="kicker"></div>
     <div class="happy" id="happy"></div>
     <div class="thanks" id="thanks"></div>
+    <div class="tagline" id="tagline"></div>
+    <div class="extra" id="extra"></div>
     <svg class="divider" viewBox="0 0 120 14" aria-hidden="true">
       <path d="M2 7 H48 M72 7 H118" stroke="#c99a3b" stroke-width="1.5"/>
       <path d="M60 1 l3 5 l5 1 l-5 1 l-3 5 l-3 -5 l-5 -1 l5 -1 z" fill="#c2410c"/>
@@ -232,6 +368,7 @@
     <div class="name" id="name"></div>
     <p class="dedication" id="dedication"></p>
     <div class="signature" id="signature"></div>
+    <div id="footer"></div>
     <div class="actions"><button id="replay" type="button">↻ <span id="replayLabel">Replay</span></button></div>
   </article>
 </main>
@@ -244,92 +381,496 @@
   const preview = params.get("preview") === "1";
   const cfg = window.APP_CONFIG;
   const $ = (id) => document.getElementById(id);
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  const LABELS = {
-    en: { tap: "Tap to open", replay: "Replay", to: "For you", aria: "Open card" },
-    es: { tap: "Toca para abrir", replay: "Ver de nuevo", to: "Para ti", aria: "Abrir postal" },
-  };
-
-  // Stars
-  const stars = $("stars");
-  for (let i = 0; i < 40; i++) {
-    const s = document.createElement("i");
-    s.style.left = Math.random() * 100 + "%";
-    s.style.top = Math.random() * 100 + "%";
-    s.style.animationDelay = (Math.random() * 3).toFixed(2) + "s";
-    s.style.opacity = (0.3 + Math.random() * 0.7).toFixed(2);
-    stars.appendChild(s);
-  }
-
-  // Leaves
-  const LEAF_COLORS = ["#c2410c", "#ea580c", "#f59e0b", "#b45309", "#dc2626", "#d97706", "#92400e"];
   const MAPLE = "M12 0 l2.2 5.2 l3.6 -1.6 l-1 4.4 l4.6 -.4 l-3 3.4 l3.4 2.4 l-5.2 .6 l.8 4.4 l-4.2 -2.6 l-.6 4.8 h-1.2 l-.6 -4.8 l-4.2 2.6 l.8 -4.4 l-5.2 -.6 l3.4 -2.4 l-3 -3.4 l4.6 .4 l-1 -4.4 l3.6 1.6 z";
   const OAK = "M12 0 C 16 4, 18 8, 15 11 C 19 12, 19 16, 14 16 C 16 20, 13 22, 12 24 C 11 22, 8 20, 10 16 C 5 16, 5 12, 9 11 C 6 8, 8 4, 12 0 z";
-  const leavesEl = $("leaves");
-  function spawnLeaf(burst) {
+  const HEART = "M12 21 C 5 15, 1 11, 1 7 A5 5 0 0 1 12 5 A5 5 0 0 1 23 7 C 23 11, 19 15, 12 21 z";
+  const SPARK = "M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z";
+  const LEAF_COLORS = ["#c2410c", "#ea580c", "#f59e0b", "#b45309", "#dc2626", "#d97706", "#92400e"];
+
+  // ---------- art pieces ----------
+  const PUMPKINS = `<svg viewBox="0 0 300 120" aria-hidden="true">
+    <g class="fade">
+      <path d="M30 100 C 60 60, 90 50, 120 70" stroke="#a16207" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M270 100 C 240 60, 210 50, 180 70" stroke="#a16207" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <g fill="#d97706"><ellipse cx="55" cy="74" rx="9" ry="4" transform="rotate(-35 55 74)"/><ellipse cx="75" cy="62" rx="9" ry="4" transform="rotate(-25 75 62)"/><ellipse cx="97" cy="58" rx="9" ry="4" transform="rotate(-5 97 58)"/></g>
+      <g fill="#d97706"><ellipse cx="245" cy="74" rx="9" ry="4" transform="rotate(35 245 74)"/><ellipse cx="225" cy="62" rx="9" ry="4" transform="rotate(25 225 62)"/><ellipse cx="203" cy="58" rx="9" ry="4" transform="rotate(5 203 58)"/></g>
+      <path transform="translate(14 84) rotate(-20) scale(1.1)" d="${MAPLE}" fill="#b91c1c"/>
+      <path transform="translate(262 78) rotate(20) scale(1.1)" d="${MAPLE}" fill="#c2410c"/>
+    </g>
+    <g class="pop"><ellipse cx="105" cy="92" rx="34" ry="24" fill="#ea580c"/><ellipse cx="105" cy="92" rx="14" ry="24" fill="#f97316"/><rect x="102" y="62" width="6" height="10" rx="2" fill="#65a30d"/></g>
+    <g class="pop d1"><ellipse cx="160" cy="88" rx="42" ry="30" fill="#f97316"/><ellipse cx="160" cy="88" rx="18" ry="30" fill="#fb923c"/><ellipse cx="160" cy="88" rx="32" ry="30" fill="none" stroke="#ea580c" stroke-width="2" opacity=".6"/><path d="M158 58 q2 -10 8 -12" stroke="#4d7c0f" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M166 54 q14 -6 18 4 q-10 4 -18 -4" fill="#65a30d"/></g>
+    <g class="pop d2"><ellipse cx="212" cy="98" rx="24" ry="17" fill="#fbbf24"/><ellipse cx="212" cy="98" rx="9" ry="17" fill="#fcd34d"/><rect x="210" y="77" width="5" height="8" rx="2" fill="#65a30d"/></g>
+  </svg>`;
+
+  const HOUSE = `<svg viewBox="0 0 300 130" aria-hidden="true">
+    <ellipse cx="150" cy="118" rx="130" ry="9" fill="#e9d8c0"/>
+    <g class="fade"><circle cx="58" cy="86" r="26" fill="#2f6b3a"/><circle cx="46" cy="70" r="18" fill="#3f7f48"/><rect x="55" y="100" width="6" height="18" fill="#6b3d1f"/>
+      <circle cx="244" cy="88" r="24" fill="#c2410c"/><circle cx="256" cy="74" r="16" fill="#d97706"/><rect x="241" y="100" width="6" height="18" fill="#6b3d1f"/></g>
+    <g class="pop">
+      <rect x="172" y="26" width="12" height="26" fill="#6b2a1a"/>
+      <path class="smoke" d="M178 14 C 172 8, 170 4, 174 2 C 176 0, 178 2, 178 4 C 178 2, 180 0, 182 2 C 186 4, 184 8, 178 14 z" fill="#f4a6a6"/>
+      <path class="smoke s2" d="M180 14 C 174 8, 172 4, 176 2 C 178 0, 180 2, 180 4 C 180 2, 182 0, 184 2 C 188 4, 186 8, 180 14 z" fill="#f4a6a6"/>
+      <polygon points="96,62 150,20 204,62" fill="#7f1d1d"/>
+      <rect x="108" y="60" width="84" height="56" fill="#c8794a"/>
+      <rect x="141" y="82" width="18" height="34" rx="2" fill="#5b2a12"/><circle cx="155" cy="100" r="1.8" fill="#fcd34d"/>
+      <rect class="win" x="117" y="72" width="18" height="16" fill="#fbbf24"/><rect class="win" x="165" y="72" width="18" height="16" fill="#fbbf24" style="animation-delay:1.2s"/>
+      <path d="M126 72 v16 M117 80 h18 M174 72 v16 M165 80 h18" stroke="#c8794a" stroke-width="2"/>
+      <path d="M144 40 c -6 -6 -12 0 -6 6 l 6 6 l 6 -6 c 6 -6 0 -12 -6 -6 z" fill="#fcd34d"/>
+    </g>
+    <g class="pop d2"><ellipse cx="112" cy="114" rx="12" ry="8" fill="#ea580c"/><ellipse cx="190" cy="114" rx="10" ry="7" fill="#fbbf24"/></g>
+  </svg>`;
+
+  function stringLights(width, height, n, sag, cls) {
+    let pts = "", bulbs = "";
+    const colors = ["#ffcf70", "#ff8a65", "#7fd6cf", "#fff3b0", "#ffb36b"];
+    for (let i = 0; i <= n; i++) {
+      const x = (i / n) * width;
+      const y = 6 + Math.sin((i / n) * Math.PI) * sag;
+      pts += `${i ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)} `;
+      if (i > 0 && i < n) bulbs += `<circle cx="${x.toFixed(1)}" cy="${(y + 7).toFixed(1)}" r="4.5" fill="${colors[i % colors.length]}" style="animation-delay:${(i * 0.23).toFixed(2)}s;filter:drop-shadow(0 0 5px ${colors[i % colors.length]})"/>`;
+    }
+    return `<svg class="${cls}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-hidden="true"><path d="${pts}" stroke="#3b3b3b" stroke-width="1.5" fill="none"/>${bulbs}</svg>`;
+  }
+
+  const PALM = `<svg viewBox="0 0 200 300" aria-hidden="true"><g stroke="#1a0533" stroke-linecap="round" fill="none">
+    <path d="M110 300 C 104 230, 114 160, 96 92" stroke-width="12"/>
+    <path d="M96 92 Q 44 62 6 98" stroke-width="9"/><path d="M96 92 Q 54 40 14 42" stroke-width="9"/>
+    <path d="M96 92 Q 112 28 154 22" stroke-width="9"/><path d="M96 92 Q 152 60 194 96" stroke-width="9"/>
+    <path d="M96 92 Q 128 76 166 132" stroke-width="8"/><path d="M96 92 Q 62 84 38 142" stroke-width="8"/></g>
+    <circle cx="92" cy="98" r="7" fill="#1a0533"/><circle cx="102" cy="100" r="6" fill="#1a0533"/></svg>`;
+
+  // ---------- themes ----------
+  const THEMES = {
+    clasica: {
+      intro: "envelope", seal: "🍁", particles: { kinds: ["maple", "oak"], colors: LEAF_COLORS, count: 34 },
+      scene: () => `<div class="glow"></div><div class="stars" style="position:absolute;inset:0 0 50% 0">${starsHtml(40)}</div>`,
+      art: () => PUMPKINS, tagline: { es: "", en: "" },
+    },
+    neon: {
+      intro: "loading", particles: { kinds: ["spark"], colors: ["#ff3ea5", "#3ff3ff", "#ffe14d"], count: 22, glow: true },
+      scene: () => `<div class="stars" style="position:absolute;inset:0 0 45% 0">${starsHtml(50)}</div><div class="sun"></div><div class="grid-base"></div><div class="grid"></div><div class="palm l">${PALM}</div><div class="palm r">${PALM}</div>`,
+      art: () => `<div class="neon-badge">🦃</div>`,
+      kicker: { es: "✔ MISIÓN COMPLETADA", en: "✔ MISSION COMPLETE" },
+      tagline: { es: "Recompensa: pavo ilimitado 🦃", en: "Reward: unlimited turkey 🦃" },
+      extra: (l) => `${l === "en" ? "HUNGER LEVEL" : "NIVEL DE HAMBRE"} ${[0, 1, 2, 3, 4].map((i) => `<span class="st" style="--i:${i}">★</span>`).join("")}`,
+    },
+    familia: {
+      intro: "envelope", seal: "🏡", particles: { kinds: ["heart", "maple"], colors: ["#f87171", "#fb923c", "#fbbf24", "#e11d48"], count: 26 },
+      scene: () => `<div class="glow" style="opacity:.8"></div>${stringLights(400, 60, 12, 26, "lights")}<div class="bokeh">${bokehHtml(10, ["rgba(255,196,110,.35)", "rgba(255,140,90,.3)"])}</div>`,
+      art: () => HOUSE,
+      tagline: { es: "En familia todo sabe mejor", en: "Everything tastes better with family" },
+    },
+    besties: {
+      intro: "envelope", seal: "💛", particles: { kinds: ["confetti", "heart"], colors: ["#e0457b", "#8b5cf6", "#f59e0b", "#10b981", "#3b82f6"], count: 34 },
+      scene: () => `<div class="doodles">${doodlesHtml()}</div>`,
+      art: () => `<div class="photo"><div class="duo"><span>🦃</span><span>💛</span><span>🦃</span></div><div class="sticker">BFF</div></div>`,
+      tagline: { es: "Mejores amigos para siempre", en: "Best friends forever" },
+    },
+    elevador: {
+      intro: "elevator", particles: { kinds: ["maple", "oak"], colors: LEAF_COLORS, count: 20 },
+      scene: () => `<div class="lamp"></div><div class="rail"></div>`,
+      art: (l) => `<div class="disp"><span class="arr">▲</span>${l === "en" ? "FLOOR" : "PISO"} 🦃</div>`,
+      tagline: { es: "Próxima parada: gratitud", en: "Next stop: gratitude" },
+      footer: () => `<div class="buttons"><span>▼</span><span class="lit">🦃</span><span>▲</span></div>`,
+    },
+    amigos: {
+      intro: "envelope", seal: "🥂", particles: { kinds: ["confetti", "maple"], colors: ["#ffcf70", "#7fd6cf", "#ff8a65", "#fff3b0", "#f59e0b"], count: 30 },
+      scene: () => `${stringLights(400, 60, 14, 30, "lights")}<div class="bokeh">${bokehHtml(12, ["rgba(127,214,207,.25)", "rgba(255,207,112,.3)"])}</div>`,
+      art: () => `${stringLights(300, 34, 9, 12, "card-lights")}<div class="trio"><span>🥂</span><span>🦃</span><span>🥧</span></div>`,
+      tagline: { es: "Gracias por tu amistad", en: "Thankful for friends like you" },
+    },
+  };
+
+  const LABELS = {
+    en: { tap: "Tap to open", start: "▶ Tap to start", call: "Tap to call the elevator", replay: "Replay", to: "For you", aria: "Open card", loading: "Loading mission…", edition: "SPECIAL EDITION",
+      tips: ["Tip: save room for dessert.", "Tip: the turkey won't cook itself.", "Tip: the post-dinner nap is mandatory."] },
+    es: { tap: "Toca para abrir", start: "▶ Toca para empezar", call: "Toca para llamar el elevador", replay: "Ver de nuevo", to: "Para ti", aria: "Abrir postal", loading: "Cargando misión…", edition: "EDICIÓN ESPECIAL",
+      tips: ["Consejo: guarda espacio para el postre.", "Consejo: el pavo no se cocina solo.", "Consejo: la siesta después de comer es obligatoria."] },
+  };
+
+  const DEMO = {
+    clasica: "Gracias por estar siempre ahí, por las risas y los cafés de los domingos. Que tu mesa esté llena de amor y de tus postres favoritos.",
+    neon: "Este año completaste todas las misiones y nunca dejaste a nadie atrás. Hoy toca subir de nivel… en postres.",
+    familia: "Gracias por ser el corazón de esta familia. Cada año en tu mesa es un recuerdo que guardo para siempre.",
+    besties: "Gracias por aguantar mis locuras, mis audios de 5 minutos y por estar en todas. ¡Te quiero, amiga!",
+    elevador: "Gracias por este año de trabajo en equipo. Que tu día suba piso por piso hasta lo más alto.",
+    amigos: "Gracias por las risas, los planes de último minuto y por ser la familia que uno escoge.",
+  };
+
+  // ---------- helpers ----------
+  function starsHtml(n) {
+    let h = "";
+    for (let i = 0; i < n; i++) h += `<i style="left:${(Math.random() * 100).toFixed(1)}%;top:${(Math.random() * 100).toFixed(1)}%;animation-delay:${(Math.random() * 3).toFixed(2)}s;opacity:${(0.3 + Math.random() * 0.7).toFixed(2)}"></i>`;
+    return h;
+  }
+  function bokehHtml(n, colors) {
+    let h = "";
+    for (let i = 0; i < n; i++) {
+      const s = 30 + Math.random() * 70;
+      h += `<i style="left:${(Math.random() * 100).toFixed(1)}%;top:${(20 + Math.random() * 75).toFixed(1)}%;width:${s.toFixed(0)}px;height:${s.toFixed(0)}px;background:${colors[i % colors.length]};animation-delay:${(-Math.random() * 9).toFixed(2)}s"></i>`;
+    }
+    return h;
+  }
+  function doodlesHtml() {
+    const shapes = [
+      `<path d="${SPARK}" fill="#ffffff"/>`, `<path d="${HEART}" fill="#ffffff"/>`,
+      `<path d="M2 12 q5 -10 10 0 t10 0" stroke="#ffffff" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
+    ];
+    let h = "";
+    for (let i = 0; i < 16; i++) {
+      const s = 18 + Math.random() * 26;
+      h += `<svg viewBox="0 0 24 24" width="${s.toFixed(0)}" height="${s.toFixed(0)}" style="left:${(Math.random() * 95).toFixed(1)}%;top:${(Math.random() * 95).toFixed(1)}%;transform:rotate(${(Math.random() * 60 - 30).toFixed(0)}deg)">${shapes[i % shapes.length]}</svg>`;
+    }
+    return h;
+  }
+  function shapeSvg(kind, color, size) {
+    if (kind === "confetti") {
+      const w = (size * 0.45).toFixed(1), hgt = (size * 0.8).toFixed(1);
+      return `<svg width="${w}" height="${hgt}" viewBox="0 0 10 18" style="animation-duration:${(0.6 + Math.random()).toFixed(2)}s"><rect width="10" height="18" rx="2" fill="${color}"/></svg>`;
+    }
+    const d = kind === "heart" ? HEART : kind === "spark" ? SPARK : kind === "oak" ? OAK : MAPLE;
+    const vein = kind === "maple" || kind === "oak" ? `<path d="M12 6 V24" stroke="rgba(0,0,0,.25)" stroke-width=".8"/>` : "";
+    return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" style="color:${color};animation-duration:${(1.6 + Math.random() * 1.8).toFixed(2)}s"><path d="${d}" fill="${color}" opacity=".92"/>${vein}</svg>`;
+  }
+
+  const particlesEl = $("particles");
+  let pconf = THEMES.clasica.particles;
+  function spawn(burst) {
     const el = document.createElement("div");
-    el.className = "leaf";
-    const size = 16 + Math.random() * 22;
+    el.className = "pt" + (pconf.glow ? " glowy" : "");
+    const size = (pconf.kinds[0] === "spark" ? 10 : 16) + Math.random() * 20;
     const dur = burst ? 3 + Math.random() * 3 : 7 + Math.random() * 7;
-    el.style.left = (burst ? 30 + Math.random() * 40 : Math.random() * 100) + "vw";
+    el.style.left = (burst ? 25 + Math.random() * 50 : Math.random() * 100) + "vw";
     if (burst) el.style.top = "30vh";
     el.style.setProperty("--drift", (Math.random() * 30 - 15) + "vw");
     el.style.setProperty("--spin", (Math.random() * 720 - 360) + "deg");
     el.style.animationDuration = dur + "s";
-    const color = LEAF_COLORS[(Math.random() * LEAF_COLORS.length) | 0];
-    const path = Math.random() < 0.65 ? MAPLE : OAK;
-    el.innerHTML = `<svg width="${size}" height="${size}" viewBox="0 0 24 24" style="animation-duration:${(1.6 + Math.random() * 1.8).toFixed(2)}s"><path d="${path}" fill="${color}" opacity=".92"/><path d="M12 6 V24" stroke="rgba(0,0,0,.25)" stroke-width=".8"/></svg>`;
-    leavesEl.appendChild(el);
+    const kind = pconf.kinds[(Math.random() * pconf.kinds.length) | 0];
+    const color = pconf.colors[(Math.random() * pconf.colors.length) | 0];
+    el.innerHTML = shapeSvg(kind, color, size);
+    particlesEl.appendChild(el);
     setTimeout(() => el.remove(), dur * 1000 + 200);
   }
-  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (!reduce) {
-    for (let i = 0; i < 10; i++) setTimeout(() => spawnLeaf(false), i * 400);
-    setInterval(() => { if (!document.hidden && leavesEl.childElementCount < 34) spawnLeaf(false); }, 650);
+  let particleTimer = null;
+  function startParticles() {
+    if (reduce) return;
+    clearInterval(particleTimer);
+    for (let i = 0; i < 8; i++) setTimeout(() => spawn(false), i * 400);
+    particleTimer = setInterval(() => { if (!document.hidden && particlesEl.childElementCount < pconf.count) spawn(false); }, 650);
   }
-  function burst(n) { if (!reduce) for (let i = 0; i < n; i++) setTimeout(() => spawnLeaf(true), i * 40); }
+  function burst(n) { if (!reduce) for (let i = 0; i < n; i++) setTimeout(() => spawn(true), i * 40); }
 
   function splitChars(el, text) {
     el.textContent = "";
     [...text].forEach((ch, i) => {
       const s = document.createElement("span");
-      s.className = "ch";
-      s.style.setProperty("--i", i);
+      s.className = "ch"; s.style.setProperty("--i", i);
       s.textContent = ch === " " ? " " : ch;
       el.appendChild(s);
     });
   }
   function splitWords(el, text) {
     el.textContent = "";
-    const words = text.split(/(\s+)/);
     let i = 0;
-    words.forEach((w) => {
+    text.split(/(\s+)/).forEach((w) => {
       if (/^\s+$/.test(w)) { el.appendChild(document.createTextNode(" ")); return; }
       if (!w) return;
       const s = document.createElement("span");
-      s.className = "w";
-      s.style.setProperty("--i", i++);
-      s.textContent = w;
+      s.className = "w"; s.style.setProperty("--i", i++); s.textContent = w;
       el.appendChild(s);
     });
     return i;
   }
   function fitName(el) {
-    // shrink long names so they stay on one or two lines
     const len = el.textContent.length;
+    el.style.fontSize = "";
     if (len > 14) el.style.fontSize = "clamp(34px, 10vw, 46px)";
     if (len > 22) el.style.fontSize = "clamp(28px, 8vw, 38px)";
   }
+  // ---------- music: original loops synthesized in the browser (no audio files) ----------
+  const Music = (() => {
+    let ctx = null, master = null, wet = null, timer = null, song = null, nextBar = 0, bar = 0, playing = false;
+    let muted = false;
+    try { muted = localStorage.getItem("postal-muted") === "1"; } catch (e) {}
+    const VOL = 0.5;
+    const mtof = (m) => 440 * Math.pow(2, (m - 69) / 12);
 
-  let data = { display_name: "", dedication: "", lang: "en", signature: "" };
+    function unlock() {
+      try {
+        if (!ctx) {
+          try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) {}
+          ctx = new (window.AudioContext || window.webkitAudioContext)();
+          master = ctx.createGain(); master.gain.value = 0;
+          const comp = ctx.createDynamicsCompressor();
+          master.connect(comp).connect(ctx.destination);
+          const rev = ctx.createConvolver();
+          const len = Math.floor(ctx.sampleRate * 2.4), buf = ctx.createBuffer(2, len, ctx.sampleRate);
+          for (let c = 0; c < 2; c++) { const d = buf.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6); }
+          rev.buffer = buf;
+          wet = ctx.createGain(); wet.gain.value = 0.28; wet.connect(rev).connect(master);
+        }
+        if (ctx.state !== "running") ctx.resume();
+      } catch (e) { ctx = null; }
+      return ctx;
+    }
+    function out(node, rv) {
+      node.connect(master);
+      if (rv) { const s = ctx.createGain(); s.gain.value = rv; node.connect(s).connect(wet); }
+    }
+    // sustained voice with attack/release
+    function tone(o) {
+      const { f, t, dur, type = "sine", vol = 0.1, a = 0.02, r = 0.3, cutoff = 0, detune = 0, rv = 0.6 } = o;
+      const osc = ctx.createOscillator(); osc.type = type; osc.frequency.value = f; osc.detune.value = detune;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + a);
+      g.gain.setValueAtTime(vol, t + Math.max(a, dur - r)); g.gain.linearRampToValueAtTime(0, t + dur);
+      let n = osc;
+      if (cutoff) { const fl = ctx.createBiquadFilter(); fl.type = "lowpass"; fl.frequency.value = cutoff; osc.connect(fl); n = fl; }
+      n.connect(g); out(g, rv); osc.start(t); osc.stop(t + dur + 0.05);
+    }
+    // plucked / struck voice with exponential decay
+    function pluck(o) {
+      const { f, t, dur = 0.8, type = "triangle", vol = 0.12, cutoff = 3000, rv = 0.6, harm = 0 } = o;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      const fl = ctx.createBiquadFilter(); fl.type = "lowpass"; fl.frequency.value = cutoff; fl.connect(g); out(g, rv);
+      const osc = ctx.createOscillator(); osc.type = type; osc.frequency.value = f; osc.connect(fl); osc.start(t); osc.stop(t + dur + 0.05);
+      if (harm) { const o2 = ctx.createOscillator(), g2 = ctx.createGain(); o2.type = "sine"; o2.frequency.value = f * 2; g2.gain.value = harm; o2.connect(g2).connect(fl); o2.start(t); o2.stop(t + dur * 0.6); }
+    }
+    let noiseBuf = null;
+    function noise(t, dur, vol, freq, type = "highpass", rv = 0.1) {
+      if (!noiseBuf) { noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+      const s = ctx.createBufferSource(); s.buffer = noiseBuf;
+      const fl = ctx.createBiquadFilter(); fl.type = type; fl.frequency.value = freq;
+      const g = ctx.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      s.connect(fl).connect(g); out(g, rv); s.start(t); s.stop(t + dur + 0.02);
+    }
+    function kick(t, vol = 0.45) {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.14);
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.32);
+      o.connect(g); out(g, 0); o.start(t); o.stop(t + 0.35);
+    }
+    const hat = (t, v = 0.035) => noise(t, 0.05, v, 7500);
+    const clap = (t, v = 0.12) => noise(t, 0.18, v, 1600, "bandpass", 0.3);
+    const pad = (notes, t, dur, vol = 0.025, cutoff = 1100, type = "sawtooth") =>
+      notes.forEach((m) => { tone({ f: mtof(m), t, dur, type, vol, a: 0.5, r: 0.8, cutoff, detune: -7, rv: 0.9 }); tone({ f: mtof(m), t, dur, type, vol, a: 0.5, r: 0.8, cutoff, detune: 7, rv: 0.9 }); });
+
+    const C = [60, 64, 67], Am = [57, 60, 64], F = [53, 57, 60], G = [55, 59, 62], Em = [52, 55, 59], D = [54, 57, 62], A = [57, 61, 64], Bm = [59, 62, 66];
+    const SONGS = {
+      // gentle music box over warm strings
+      clasica: { bpm: 74, chords: [C, Am, F, G], bar(t, ch, n, b) {
+        pad(ch, t, b * 4, 0.018, 900, "triangle");
+        tone({ f: mtof(ch[0] - 24), t, dur: b * 2, vol: 0.09, a: 0.05, r: 0.5, rv: 0.3 });
+        tone({ f: mtof(ch[0] - 24), t: t + b * 2, dur: b * 2, vol: 0.08, a: 0.05, r: 0.5, rv: 0.3 });
+        const arp = [ch[0] + 12, ch[1] + 12, ch[2] + 12, ch[0] + 24, ch[2] + 12, ch[1] + 12, ch[0] + 12, ch[1] + 12];
+        arp.forEach((m, i) => pluck({ f: mtof(m), t: t + i * b / 2, dur: 1.3, type: "sine", vol: 0.07, cutoff: 6000, harm: 0.25, rv: 0.8 }));
+      } },
+      // 80s synthwave: pulsing bass, arpeggio, drums
+      neon: { bpm: 100, chords: [Am, F, C, G], bar(t, ch, n, b) {
+        pad(ch, t, b * 4, 0.02, 1300);
+        for (let i = 0; i < 8; i++) pluck({ f: mtof(ch[0] - 24), t: t + i * b / 2, dur: 0.28, type: "sawtooth", vol: 0.11, cutoff: 600, rv: 0 });
+        const arp = [ch[0], ch[1], ch[2], ch[0] + 12];
+        for (let i = 0; i < 16; i++) pluck({ f: mtof(arp[i % 4] + 12), t: t + i * b / 4, dur: 0.18, type: "square", vol: 0.035, cutoff: 2600, rv: 0.5 });
+        for (let i = 0; i < 4; i++) kick(t + i * b, 0.4);
+        clap(t + b, 0.1); clap(t + b * 3, 0.1);
+        for (let i = 0; i < 4; i++) hat(t + i * b + b / 2, 0.03);
+      } },
+      // warm finger-picked guitar
+      familia: { bpm: 78, chords: [G, Em, C, D], bar(t, ch, n, b) {
+        pad(ch, t, b * 4, 0.012, 800, "triangle");
+        const p = [ch[0] - 12, ch[1], ch[2], ch[1] + 12, ch[0] - 5, ch[1], ch[2], ch[1]];
+        p.forEach((m, i) => pluck({ f: mtof(m), t: t + i * b / 2, dur: 1.4, type: "triangle", vol: 0.1, cutoff: 2200, rv: 0.5 }));
+        tone({ f: mtof(ch[0] - 24), t, dur: b * 2, vol: 0.08, a: 0.03, r: 0.4, rv: 0.2 });
+        tone({ f: mtof(ch[0] - 17), t: t + b * 2, dur: b * 2, vol: 0.07, a: 0.03, r: 0.4, rv: 0.2 });
+      } },
+      // bubbly pop
+      besties: { bpm: 118, chords: [C, G, Am, F], bar(t, ch, n, b) {
+        for (let i = 0; i < 4; i++) ch.forEach((m) => pluck({ f: mtof(m + 12), t: t + i * b + b / 2, dur: 0.22, type: "square", vol: 0.03, cutoff: 2400, rv: 0.4 }));
+        [0, 3, 4, 6].forEach((i) => pluck({ f: mtof(ch[0] - 24), t: t + i * b / 2, dur: 0.3, type: "triangle", vol: 0.14, cutoff: 900, rv: 0 }));
+        pluck({ f: mtof(ch[2] + 24), t, dur: 1.2, type: "sine", vol: 0.06, cutoff: 8000, harm: 0.3, rv: 0.8 });
+        pluck({ f: mtof(ch[1] + 24), t: t + b * 2.5, dur: 1, type: "sine", vol: 0.05, cutoff: 8000, harm: 0.3, rv: 0.8 });
+        kick(t, 0.35); kick(t + b * 2, 0.35); kick(t + b * 2.5, 0.25);
+        clap(t + b, 0.09); clap(t + b * 3, 0.09);
+        for (let i = 0; i < 8; i++) hat(t + i * b / 2, 0.022);
+      } },
+      // elevator bossa / lounge
+      elevador: { bpm: 92, chords: [[60, 64, 67, 71], [57, 61, 64, 67], [53, 57, 60, 62], [53, 55, 59, 62]], roots: [48, 45, 50, 43], bar(t, ch, n, b) {
+        const root = this.roots[n % 4];
+        [0, 3, 6].forEach((i) => ch.forEach((m) => pluck({ f: mtof(m), t: t + i * b / 2, dur: 1.1, type: "sine", vol: 0.045, cutoff: 3000, harm: 0.35, rv: 0.6 })));
+        [[0, root], [3, root + 7], [4, root], [7, root + 7]].forEach(([i, m]) => pluck({ f: mtof(m - 12), t: t + i * b / 2, dur: 0.7, type: "triangle", vol: 0.13, cutoff: 700, rv: 0.1 }));
+        for (let i = 0; i < 16; i++) noise(t + i * b / 4, 0.04, i % 2 ? 0.012 : 0.022, 6000);
+        noise(t + b * 1.5, 0.05, 0.05, 2500, "bandpass", 0.2); noise(t + b * 3, 0.05, 0.05, 2500, "bandpass", 0.2);
+        if (n % 2 === 0) pluck({ f: mtof(ch[ch.length - 1] + 12), t: t + b * 2, dur: 1.8, type: "sine", vol: 0.06, cutoff: 6000, harm: 0.2, rv: 0.9 });
+      } },
+      // upbeat folk-pop
+      amigos: { bpm: 104, chords: [D, A, Bm, G], bar(t, ch, n, b) {
+        pad(ch, t, b * 4, 0.014, 1000, "triangle");
+        const p = [ch[0], ch[1], ch[2], ch[1], ch[0] + 12, ch[2], ch[1], ch[2]];
+        p.forEach((m, i) => pluck({ f: mtof(m), t: t + i * b / 2, dur: 0.6, type: "triangle", vol: 0.09, cutoff: 2800, rv: 0.4 }));
+        [0, 3, 4].forEach((i) => pluck({ f: mtof(ch[0] - 24), t: t + i * b / 2, dur: 0.5, type: "triangle", vol: 0.14, cutoff: 800, rv: 0 }));
+        kick(t, 0.35); kick(t + b * 2, 0.35);
+        clap(t + b, 0.08); clap(t + b * 3, 0.08);
+        for (let i = 0; i < 8; i++) noise(t + i * b / 2, 0.06, 0.02, 9000);
+      } },
+    };
+
+    function schedule() {
+      if (!ctx || !song) return;
+      const spb = 60 / song.bpm;
+      while (nextBar < ctx.currentTime + 0.35) {
+        song.bar(nextBar, song.chords[bar % song.chords.length], bar, spb);
+        nextBar += spb * 4; bar++;
+      }
+    }
+    function setVol(ramp) {
+      if (!master) return;
+      const now = ctx.currentTime;
+      master.gain.cancelScheduledValues(now);
+      master.gain.setValueAtTime(master.gain.value, now);
+      master.gain.linearRampToValueAtTime(muted ? 0 : VOL, now + ramp);
+    }
+    function start(theme) {
+      if (!unlock() || playing) return;
+      song = SONGS[theme] || SONGS.clasica;
+      playing = true; bar = 0; nextBar = ctx.currentTime + 0.15;
+      schedule(); timer = setInterval(schedule, 100);
+      setVol(2.5);
+    }
+    function toggle() {
+      muted = !muted;
+      try { localStorage.setItem("postal-muted", muted ? "1" : "0"); } catch (e) {}
+      if (!muted) unlock();
+      setVol(0.4);
+      return muted;
+    }
+    document.addEventListener("visibilitychange", () => {
+      if (!ctx || !playing) return;
+      if (document.hidden) ctx.suspend(); else ctx.resume();
+    });
+    return { unlock, start, toggle, isMuted: () => muted, ctx: () => ctx };
+  })();
+
+  function chime() {
+    const ctx = Music.unlock();
+    if (!ctx) return;
+    [[880, 0], [659.25, 0.28]].forEach(([f, t]) => {
+      const o = ctx.createOscillator(), g = ctx.createGain(), t0 = ctx.currentTime + t;
+      o.type = "sine"; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.22, t0 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.1);
+      o.connect(g).connect(ctx.destination); o.start(t0); o.stop(t0 + 1.2);
+    });
+  }
+
+  const soundBtn = $("soundBtn");
+  function paintSound() { soundBtn.textContent = Music.isMuted() ? "🔇" : "🔊"; }
+  soundBtn.addEventListener("click", () => { Music.toggle(); paintSound(); });
+
+  // ---------- state & render ----------
+  let data = { display_name: "", dedication: "", lang: "en", signature: "", theme: "clasica" };
+  let opened = false;
+
+  function showCard() {
+    Music.start(document.body.dataset.theme);
+    soundBtn.classList.remove("hidden"); paintSound();
+    $("card").classList.add("show");
+    document.body.classList.add("neon-on");
+    burst(26);
+  }
+
+  function buildIntro(T, L) {
+    const intro = $("intro");
+    const who = data.display_name || L.to;
+    if (T.intro === "loading") {
+      intro.innerHTML = `<div class="loading" id="introBox" role="button" tabindex="0" aria-label="${L.aria}">
+        <div class="ld-title"><small>HAPPY</small>THANKSGIVING</div>
+        <div class="ld-for">${L.edition} · ${escapeHtml(who).toUpperCase()}</div>
+        <div class="ld-bar"><i></i></div>
+        <div class="ld-tip" id="ldTip">${L.loading}</div>
+        <button class="ld-start hidden" id="ldStart" type="button">${L.start}</button>
+      </div>`;
+      let ready = false, tipI = 0;
+      const tipTimer = setInterval(() => { $("ldTip").textContent = L.tips[tipI++ % L.tips.length]; }, 900);
+      setTimeout(() => { ready = true; clearInterval(tipTimer); $("ldTip").textContent = "100%"; $("ldStart").classList.remove("hidden"); }, reduce ? 0 : 2700);
+      const go = () => {
+        if (!ready || opened) return;
+        opened = true;
+        Music.unlock();
+        const f = document.createElement("div"); f.className = "flash"; document.body.appendChild(f);
+        setTimeout(() => f.remove(), 600);
+        intro.innerHTML = "";
+        showCard();
+      };
+      $("introBox").addEventListener("click", go);
+      $("introBox").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+    } else if (T.intro === "elevator") {
+      intro.innerHTML = `<div class="elev" id="introBox">
+        <div class="elev-display"><span class="arr">▲</span><span id="floor">1</span></div>
+        <div class="elev-frame"><div class="elev-doors"><div class="door l"></div><div class="door r"></div></div></div>
+        <div class="elev-call" id="callBox" role="button" tabindex="0" aria-label="${L.call}"><div class="call-btn">▲</div><div class="tap">${L.call}</div></div>
+      </div>`;
+      const box = $("introBox");
+      const go = () => {
+        if (opened) return;
+        opened = true;
+        Music.unlock();
+        box.classList.add("called", "moving");
+        const floors = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "🦃"];
+        let i = 0;
+        const step = reduce ? 0 : 230;
+        const t = setInterval(() => {
+          i++;
+          $("floor").textContent = floors[Math.min(i, floors.length - 1)];
+          if (i >= floors.length - 1) {
+            clearInterval(t);
+            box.classList.remove("moving");
+            chime();
+            setTimeout(() => { showCard(); box.classList.add("open"); }, reduce ? 0 : 350);
+            setTimeout(() => { intro.innerHTML = ""; }, reduce ? 50 : 2300);
+          }
+        }, step);
+      };
+      $("callBox").addEventListener("click", go);
+      $("callBox").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+    } else {
+      intro.innerHTML = `<div class="intro envelope-wrap" id="introBox" role="button" tabindex="0" aria-label="${L.aria}">
+        <div class="envelope"><div class="env-back"></div><div class="env-peek"></div><div class="env-front"></div><div class="env-flap"></div>
+          <div class="seal">${T.seal || "🍁"}</div><div class="env-to">${escapeHtml(who)}</div></div>
+        <div class="tap">${L.tap}</div></div>`;
+      const wrap = $("introBox");
+      const go = () => {
+        if (opened) return;
+        opened = true;
+        Music.unlock();
+        wrap.classList.add("opening");
+        setTimeout(() => wrap.classList.add("gone"), 1000);
+        setTimeout(() => { intro.innerHTML = ""; showCard(); }, 1550);
+      };
+      wrap.addEventListener("click", go);
+      wrap.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+    }
+  }
+  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 
   function render() {
-    const L = LABELS[data.lang] || LABELS.en;
-    document.documentElement.lang = data.lang;
-    $("tapLabel").textContent = L.tap;
-    $("replayLabel").textContent = L.replay;
-    $("envWrap").setAttribute("aria-label", L.aria);
-    $("envTo").textContent = data.display_name || L.to;
+    const theme = THEMES[data.theme] ? data.theme : "clasica";
+    const T = THEMES[theme];
+    const lang = data.lang === "es" ? "es" : "en";
+    const L = LABELS[lang];
+    document.body.dataset.theme = theme;
+    document.documentElement.lang = lang;
+    $("scene").innerHTML = T.scene();
+    pconf = T.particles;
+    particlesEl.innerHTML = "";
+    startParticles();
+
+    $("art").innerHTML = T.art(lang);
+    $("kicker").textContent = T.kicker ? T.kicker[lang] : "";
+    $("tagline").textContent = T.tagline ? T.tagline[lang] : "";
+    $("extra").innerHTML = T.extra ? T.extra(lang) : "";
+    $("footer").innerHTML = T.footer ? T.footer(lang) : "";
     splitChars($("happy"), "Happy");
     splitChars($("thanks"), "Thanksgiving");
     $("name").textContent = data.display_name || "";
@@ -341,35 +882,28 @@
     $("card").style.setProperty("--sig-delay", sigDelay.toFixed(2) + "s");
     $("signature").textContent = data.signature ? "— " + data.signature : "";
     $("signature").style.display = data.signature ? "block" : "none";
+    $("replayLabel").textContent = L.replay;
+
+    opened = false;
+    $("card").classList.remove("show");
+    document.body.classList.remove("neon-on");
+    buildIntro(T, L);
   }
 
-  function openCard() {
-    const wrap = $("envWrap");
-    if (wrap.classList.contains("opening")) return;
-    wrap.classList.add("opening");
-    setTimeout(() => wrap.classList.add("gone"), 1000);
-    setTimeout(() => {
-      wrap.style.display = "none";
-      $("card").classList.add("show");
-      burst(26);
-    }, 1550);
-  }
-  function replay() {
+  $("replay").addEventListener("click", () => {
     const card = $("card");
     card.classList.remove("show");
     void card.offsetWidth;
     card.classList.add("show");
     burst(20);
-  }
-
-  $("envWrap").addEventListener("click", openCard);
-  $("envWrap").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openCard(); } });
-  $("replay").addEventListener("click", replay);
+  });
 
   async function load() {
     if (params.get("demo") === "1") {
-      data = { display_name: "María", lang: "es", signature: "Con cariño, Javier",
-        dedication: "Gracias por estar siempre ahí, por las risas y los cafés de los domingos. Que esta mesa esté llena de amor y de tus postres favoritos." };
+      const t = THEMES[params.get("t")] ? params.get("t") : "clasica";
+      const l = params.get("l") === "en" ? "en" : "es";
+      data = { display_name: params.get("n") || "María", lang: l, theme: t, signature: l === "en" ? "Love, Javier" : "Con cariño, Javier",
+        dedication: l === "en" ? "Thank you for always being there, for the laughs and the good times. Wishing you a table full of love and your favorite desserts." : DEMO[t] };
       render(); return;
     }
     if (!code) { render(); return; }
@@ -386,7 +920,6 @@
     data.signature = data.signature || "";
     render();
   }
-  render();
   load();
 })();
 </script>
