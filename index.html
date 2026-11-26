@@ -359,7 +359,121 @@
     display: grid; place-items: center; cursor: pointer; animation: fadeIn .5s ease both;
   }
 
+
+  /* ===================== v2 design layer ===================== */
+  body { --ease-out: cubic-bezier(.22, 1, .36, 1); }
+  body[data-theme="clasica"] { --sheen: #f2b84b; }
+  body[data-theme="familia"] { --sheen: #f6b26b; }
+  body[data-theme="elevador"] { --sheen: #6b8bb0; }
+  body[data-theme="amigos"] { --sheen: #ffcf70; }
+  #fx { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 1; }
+  .vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0, 0, 0, .45) 100%); }
+  body[data-theme="besties"] .vignette { opacity: .25; }
+  .scan { position: absolute; inset: 0; background: repeating-linear-gradient(180deg, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.18) 2px 3px); }
+
+  /* 3D tilt that follows the finger (and the phone's motion on Android) */
+  .tilt-wrap { perspective: 1100px; width: min(92vw, 430px); }
+  .tilt { transform-style: preserve-3d; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
+  .card { width: 100%; isolation: isolate; }
+  .art { transform: translate3d(var(--px, 0px), var(--py, 0px), 0); }
+  .glare {
+    position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 3; opacity: 0;
+    background: radial-gradient(circle at var(--gx, 50%) var(--gy, 35%), rgba(255,255,255,.55), rgba(255,255,255,0) 58%);
+    mix-blend-mode: soft-light; transition: opacity .8s var(--ease-out);
+  }
+  .card.show .glare { opacity: 1; }
+  body[data-theme="neon"] .glare, body[data-theme="amigos"] .glare { background: radial-gradient(circle at var(--gx, 50%) var(--gy, 35%), rgba(255,255,255,.16), rgba(255,255,255,0) 55%); mix-blend-mode: screen; }
+
+  /* paper grain (card-sized SVG noise, rendered once as an image) */
+  .grain {
+    position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2; opacity: 0; mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .15 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  body[data-theme="clasica"] .grain, body[data-theme="familia"] .grain { opacity: .55; }
+  body[data-theme="besties"] .grain { opacity: .22; }
+  body[data-theme="amigos"] .grain { opacity: .4; mix-blend-mode: overlay; }
+
+  /* layered, softer shadows for paper cards */
+  body[data-theme="clasica"] .card, body[data-theme="familia"] .card {
+    box-shadow: 0 1px 2px rgba(40,10,0,.12), 0 6px 12px rgba(40,10,0,.12), 0 18px 36px rgba(40,10,0,.18), 0 44px 80px rgba(20,0,10,.3);
+  }
+
+  /* envelope: the letter rises out before the card appears */
+  .env-peek span { display: block; text-align: center; font-family: "Great Vibes", cursive; color: var(--accent); font-size: 24px; margin-top: 8px; }
+  .opening .env-peek { transform: translateY(-58%); }
+
+  /* typography */
+  .dedication { max-width: 34ch; margin-left: auto; margin-right: auto; text-wrap: pretty; }
+  .tagline { text-wrap: balance; }
+
+  /* name: soft-edged handwriting reveal + drawn swash underline */
+  .name {
+    clip-path: none;
+    -webkit-mask-image: linear-gradient(90deg, #000 44%, transparent 56%); mask-image: linear-gradient(90deg, #000 44%, transparent 56%);
+    -webkit-mask-size: 260% 100%; mask-size: 260% 100%; -webkit-mask-position: 100% 0; mask-position: 100% 0;
+  }
+  .card.show .name { animation: writeSoft 1.7s var(--ease-out) 2.3s forwards; }
+  @keyframes writeSoft { to { -webkit-mask-position: 0 0; mask-position: 0 0; } }
+  .swash { display: block; width: min(62%, 220px); height: 18px; margin: -6px auto 0; color: var(--accent); overflow: visible; }
+  .swash path { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-dasharray: 260; stroke-dashoffset: 260; opacity: .8; }
+  .card.show .swash path { animation: draw 1.1s var(--ease-out) 3.5s forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  body[data-theme="neon"] .swash { color: #3ff3ff; filter: drop-shadow(0 0 4px #3ff3ff); }
+  body[data-theme="besties"] .swash { color: #f472b6; }
+  body[data-theme="amigos"] .swash { color: #7fd6cf; }
+
+  /* metallic sheen that sweeps across the title, letter by letter */
+  body[data-sheen] .card.show .thanks .ch {
+    color: transparent; -webkit-background-clip: text; background-clip: text;
+    background-image: linear-gradient(105deg, var(--ink) 0 42%, var(--sheen) 50%, var(--ink) 58% 100%);
+    background-size: 320% 100%; background-position: 100% 0;
+    animation: riseIn .55s cubic-bezier(.2, 1.4, .4, 1) both, sheen 7s ease-in-out infinite;
+    animation-delay: calc(1.1s + var(--i) * 55ms), calc(2.6s + var(--i) * 45ms);
+  }
+  @keyframes sheen { 0% { background-position: 100% 0; } 16%, 100% { background-position: 0 0; } }
+
+  /* neon: tubes ignite letter by letter, then an occasional RGB glitch */
+  body[data-theme="neon"] .card.show .thanks .ch { animation: ignite 1s steps(1) both; animation-delay: calc(1.1s + var(--i) * 75ms); }
+  @keyframes ignite { 0% { opacity: 0; } 18% { opacity: 1; } 26% { opacity: .15; } 38% { opacity: 1; } 46% { opacity: .35; } 58%, 100% { opacity: 1; } }
+  body[data-theme="neon"] .thanks { position: relative; }
+  body[data-theme="neon"] .thanks::before, body[data-theme="neon"] .thanks::after {
+    content: attr(data-text); position: absolute; inset: 0; pointer-events: none; opacity: 0; text-shadow: none; mix-blend-mode: screen;
+  }
+  body[data-theme="neon"] .thanks::before { color: #3ff3ff; }
+  body[data-theme="neon"] .thanks::after { color: #ff3ea5; }
+  body[data-theme="neon"] .card.show .thanks::before { animation: glitchA 6s steps(1) 2.6s infinite; }
+  body[data-theme="neon"] .card.show .thanks::after { animation: glitchB 6s steps(1) 2.6s infinite; }
+  @keyframes glitchA { 0% { opacity: .9; transform: translate(-4px, 0); clip-path: inset(10% 0 60% 0); } 2% { transform: translate(3px, 0); clip-path: inset(55% 0 20% 0); } 4% { transform: translate(-2px, 0); clip-path: inset(30% 0 40% 0); } 6%, 100% { opacity: 0; transform: none; clip-path: inset(0); } }
+  @keyframes glitchB { 0% { opacity: .9; transform: translate(4px, 0); clip-path: inset(60% 0 10% 0); } 2% { transform: translate(-3px, 0); clip-path: inset(15% 0 55% 0); } 4% { transform: translate(2px, 0); clip-path: inset(40% 0 30% 0); } 6%, 100% { opacity: 0; transform: none; clip-path: inset(0); } }
+
+  /* besties: the instant photo develops */
+  .photo::after { content: ""; position: absolute; inset: 0; background: #f4f1ea; opacity: 0; pointer-events: none; }
+  .card.show .photo::after { animation: milk 3.2s var(--ease-out) .5s both; }
+  @keyframes milk { from { opacity: .92; } to { opacity: 0; } }
+  .card.show .photo { animation: develop 3.6s ease-out .5s both; }
+  @keyframes develop { from { filter: grayscale(1) contrast(.7) brightness(1.15) blur(1.5px); } to { filter: none; } }
+  .sticker.s2 { left: 10px; bottom: 10px; right: auto; transform: rotate(8deg); color: #7c3aed; font-size: 19px; }
+  .card.show .sticker.s2 { animation-delay: 1.5s; }
+
+  /* string lights switch on one by one */
+  .lights circle, .card-lights circle { opacity: .2; animation: none; transform-box: fill-box; transform-origin: center; }
+  body.opened .lights circle { animation: lightOn .35s ease-out forwards, bulb2 2.4s ease-in-out infinite; animation-delay: calc(var(--k) * 90ms), calc(var(--k) * 90ms + 1.2s); }
+  .card.show .card-lights circle { animation: lightOn .35s ease-out forwards, bulb2 1.8s ease-in-out infinite; animation-delay: calc(.8s + var(--k) * 90ms), calc(2s + var(--k) * 120ms); }
+  @keyframes lightOn { from { opacity: .2; } 60% { opacity: 1; transform: scale(1.3); } to { opacity: 1; transform: none; } }
+  @keyframes bulb2 { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+
+  /* elevator: warm light spills through the doors as they open */
+  .elev-doors::before {
+    content: ""; position: absolute; top: 0; bottom: 0; left: 50%; width: 6px; transform: translateX(-50%); z-index: 2; opacity: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 244, 214, .95), transparent); filter: blur(2px);
+  }
+  .elev.open .elev-doors::before { animation: spill 1.4s var(--ease-out) forwards; }
+  @keyframes spill { 0% { opacity: 0; width: 6px; } 15% { opacity: 1; } 100% { opacity: 0; width: 100%; } }
+
   @media (prefers-reduced-motion: reduce) {
+    .name { -webkit-mask-image: none; mask-image: none; }
+    .swash path { stroke-dashoffset: 0; }
+    .lights circle, .card-lights circle { opacity: 1; }
     *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important; }
     .name { clip-path: none; }
   }
@@ -367,12 +481,13 @@
 </head>
 <body data-theme="clasica">
 <div id="scene"></div>
-<div id="particles"></div>
+<canvas id="fx" aria-hidden="true"></canvas>
 <button class="sound hidden" id="soundBtn" type="button" aria-label="Music on/off">🔊</button>
 <div class="spot hidden" id="spot"><div id="spotEmbed"></div></div>
 
 <main class="stage">
   <div id="intro"></div>
+  <div class="tilt-wrap"><div class="tilt" id="tilt">
   <article class="card" id="card" aria-live="polite">
     <div class="art" id="art"></div>
     <div class="kicker" id="kicker"></div>
@@ -385,11 +500,15 @@
       <path d="M60 1 l3 5 l5 1 l-5 1 l-3 5 l-3 -5 l-5 -1 l5 -1 z" fill="#c2410c"/>
     </svg>
     <div class="name" id="name"></div>
+    <svg class="swash" viewBox="0 0 200 18" aria-hidden="true"><path d="M6 12 C 46 3, 86 17, 124 9 S 180 4, 194 11"/></svg>
     <p class="dedication" id="dedication"></p>
     <div class="signature" id="signature"></div>
     <div id="footer"></div>
     <div class="actions"><button id="replay" type="button">↻ <span id="replayLabel">Replay</span></button></div>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="glare" aria-hidden="true"></div>
   </article>
+  </div></div>
 </main>
 
 <script src="config.js"></script>
@@ -448,7 +567,7 @@
       const x = (i / n) * width;
       const y = 6 + Math.sin((i / n) * Math.PI) * sag;
       pts += `${i ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)} `;
-      if (i > 0 && i < n) bulbs += `<circle cx="${x.toFixed(1)}" cy="${(y + 7).toFixed(1)}" r="4.5" fill="${colors[i % colors.length]}" style="animation-delay:${(i * 0.23).toFixed(2)}s;filter:drop-shadow(0 0 5px ${colors[i % colors.length]})"/>`;
+      if (i > 0 && i < n) bulbs += `<circle cx="${x.toFixed(1)}" cy="${(y + 7).toFixed(1)}" r="4.5" fill="${colors[i % colors.length]}" style="--k:${i};filter:drop-shadow(0 0 5px ${colors[i % colors.length]})"/>`;
     }
     return `<svg class="${cls}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-hidden="true"><path d="${pts}" stroke="#3b3b3b" stroke-width="1.5" fill="none"/>${bulbs}</svg>`;
   }
@@ -469,7 +588,7 @@
     },
     neon: {
       intro: "loading", particles: { kinds: ["spark"], colors: ["#ff3ea5", "#3ff3ff", "#ffe14d"], count: 22, glow: true },
-      scene: () => `<div class="stars" style="position:absolute;inset:0 0 45% 0">${starsHtml(50)}</div><div class="sun"></div><div class="grid-base"></div><div class="grid"></div><div class="palm l">${PALM}</div><div class="palm r">${PALM}</div>`,
+      scene: () => `<div class="stars" style="position:absolute;inset:0 0 45% 0">${starsHtml(50)}</div><div class="sun"></div><div class="grid-base"></div><div class="grid"></div><div class="palm l">${PALM}</div><div class="palm r">${PALM}</div><div class="scan"></div>`,
       art: () => `<div class="neon-badge">🦃</div>`,
       kicker: { es: "✔ MISIÓN COMPLETADA", en: "✔ MISSION COMPLETE" },
       tagline: { es: "Recompensa: pavo ilimitado 🦃", en: "Reward: unlimited turkey 🦃" },
@@ -484,7 +603,7 @@
     besties: {
       intro: "envelope", seal: "💛", particles: { kinds: ["confetti", "heart"], colors: ["#e0457b", "#8b5cf6", "#f59e0b", "#10b981", "#3b82f6"], count: 34 },
       scene: () => `<div class="doodles">${doodlesHtml()}</div>`,
-      art: () => `<div class="photo"><div class="duo"><span>🦃</span><span>💛</span><span>🦃</span></div><div class="sticker">BFF</div></div>`,
+      art: () => `<div class="photo"><div class="duo"><span>🦃</span><span>💛</span><span>🦃</span></div><div class="sticker">BFF</div><div class="sticker s2">✨ 2026</div></div>`,
       tagline: { es: "Mejores amigos para siempre", en: "Best friends forever" },
     },
     elevador: {
@@ -554,32 +673,156 @@
     return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" style="color:${color};animation-duration:${(1.6 + Math.random() * 1.8).toFixed(2)}s"><path d="${d}" fill="${color}" opacity=".92"/>${vein}</svg>`;
   }
 
-  const particlesEl = $("particles");
-  let pconf = THEMES.clasica.particles;
-  function spawn(burst) {
-    const el = document.createElement("div");
-    el.className = "pt" + (pconf.glow ? " glowy" : "");
-    const size = (pconf.kinds[0] === "spark" ? 10 : 16) + Math.random() * 20;
-    const dur = burst ? 3 + Math.random() * 3 : 7 + Math.random() * 7;
-    el.style.left = (burst ? 25 + Math.random() * 50 : Math.random() * 100) + "vw";
-    if (burst) el.style.top = "30vh";
-    el.style.setProperty("--drift", (Math.random() * 30 - 15) + "vw");
-    el.style.setProperty("--spin", (Math.random() * 720 - 360) + "deg");
-    el.style.animationDuration = dur + "s";
-    const kind = pconf.kinds[(Math.random() * pconf.kinds.length) | 0];
-    const color = pconf.colors[(Math.random() * pconf.colors.length) | 0];
-    el.innerHTML = shapeSvg(kind, color, size);
-    particlesEl.appendChild(el);
-    setTimeout(() => el.remove(), dur * 1000 + 200);
-  }
-  let particleTimer = null;
-  function startParticles() {
+  // ---------- canvas particles: depth layers, wind sway, physics bursts (one canvas, pre-rendered sprites) ----------
+  const FX = (() => {
+    const cv = $("fx"), ctx = cv.getContext("2d");
+    let W = 0, H = 0, dpr = 1, conf = null, ambient = [], bursts = [], last = 0, running = false, acc = 0;
+    const sprites = new Map();
+    const PATHS = { maple: new Path2D(MAPLE), oak: new Path2D(OAK), heart: new Path2D(HEART), spark: new Path2D(SPARK) };
+    const rnd = (a, b) => a + Math.random() * (b - a), pick = (a) => a[(Math.random() * a.length) | 0];
+    function sprite(kind, color, glow) {
+      const key = kind + color + (glow ? 1 : 0);
+      if (sprites.has(key)) return sprites.get(key);
+      const S = 64, c = document.createElement("canvas"); c.width = c.height = S;
+      const g = c.getContext("2d");
+      g.translate(S / 2, S / 2);
+      if (glow) { g.shadowColor = color; g.shadowBlur = 12; }
+      g.fillStyle = color;
+      if (kind === "confetti") g.fillRect(-8, -14, 16, 28);
+      else {
+        g.scale(1.6, 1.6); g.translate(-12, -12); g.fill(PATHS[kind]);
+        if (kind === "maple" || kind === "oak") { g.shadowBlur = 0; g.strokeStyle = "rgba(0,0,0,.22)"; g.lineWidth = .8; g.beginPath(); g.moveTo(12, 6); g.lineTo(12, 24); g.stroke(); }
+      }
+      sprites.set(key, c);
+      return c;
+    }
+    function resize() {
+      dpr = Math.min(2, window.devicePixelRatio || 1); W = innerWidth; H = innerHeight;
+      cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    addEventListener("resize", resize); resize();
+    function makeAmbient(initial) {
+      const z = rnd(.35, 1), kind = pick(conf.kinds);
+      const base = kind === "spark" ? rnd(20, 34) : kind === "confetti" ? rnd(16, 24) : rnd(30, 52);
+      return { kind, img: sprite(kind, pick(conf.colors), !!conf.glow), z, x: rnd(0, W), y: initial ? rnd(-H * .9, H * .9) : rnd(-90, -30),
+        size: base * (.45 + z * .55), vy: rnd(26, 56) * (.45 + z * .75), sway: rnd(14, 34) * z, ph: rnd(0, 6.28), fs: rnd(.6, 1.4),
+        rot: rnd(0, 6.28), vr: rnd(-1.3, 1.3), flip: rnd(0, 6.28), vf: rnd(.6, 1.6) };
+    }
+    function setTheme(c) {
+      conf = c; ambient = [];
+      if (reduce) return;
+      for (let i = 0; i < Math.round(c.count * .6); i++) ambient.push(makeAmbient(true));
+      ambient.sort((a, b) => a.z - b.z);
+      go();
+    }
+    function burst(x, y, n, o = {}) {
+      if (reduce || !conf) return;
+      for (let i = 0; i < n; i++) {
+        const kind = pick(o.kinds || conf.kinds);
+        const ang = (o.angle == null ? -Math.PI / 2 : o.angle) + rnd(-1, 1) * (o.spread == null ? 1.2 : o.spread);
+        const sp = rnd(o.min || 300, o.max || 700);
+        const base = kind === "confetti" ? rnd(16, 26) : kind === "spark" ? rnd(18, 32) : rnd(28, 44);
+        bursts.push({ kind, img: sprite(kind, pick(o.colors || conf.colors), !!(o.glow == null ? conf.glow : o.glow)), x, y,
+          vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, size: base, rot: rnd(0, 6.28), vr: rnd(-7, 7), flip: rnd(0, 6.28), vf: rnd(5, 11),
+          life: 0, max: rnd(2.2, 3.8), g: o.gravity == null ? 900 : o.gravity, drag: o.drag == null ? 1.6 : o.drag });
+      }
+      go();
+    }
+    function cannons(colors) {
+      burst(-10, H * .88, 45, { angle: -Math.PI / 3, spread: .35, min: 650, max: 1150, kinds: ["confetti"], colors, gravity: 700, drag: 1.4 });
+      burst(W + 10, H * .88, 45, { angle: -2 * Math.PI / 3, spread: .35, min: 650, max: 1150, kinds: ["confetti"], colors, gravity: 700, drag: 1.4 });
+    }
+    function draw(p, alpha) {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.scale(1, Math.cos(p.flip));
+      ctx.globalAlpha = alpha;
+      ctx.drawImage(p.img, -p.size / 2, -p.size / 2, p.size, p.size);
+    }
+    function frame(now) {
+      const dt = last ? Math.min(.05, (now - last) / 1000) : .016; last = now;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.globalAlpha = 1; ctx.clearRect(0, 0, W, H);
+      if (conf && !reduce) {
+        acc += dt * conf.count / 8;
+        while (acc > 1) { acc--; if (ambient.length < conf.count) { const np = makeAmbient(false); const k = ambient.findIndex((q) => q.z > np.z); ambient.splice(k < 0 ? ambient.length : k, 0, np); } }
+        const t = now / 1000;
+        for (let i = ambient.length - 1; i >= 0; i--) {
+          const q = ambient[i];
+          q.y += q.vy * dt; q.x += Math.sin(t * q.fs + q.ph) * q.sway * dt; q.rot += q.vr * dt; q.flip += q.vf * dt;
+          if (q.y > H + 70) { ambient.splice(i, 1); continue; }
+        }
+        for (const q of ambient) draw(q, .3 + q.z * .65);
+      }
+      for (let i = bursts.length - 1; i >= 0; i--) {
+        const q = bursts[i]; q.life += dt;
+        const k = Math.exp(-q.drag * dt);
+        q.vx *= k; q.vy = q.vy * k + q.g * dt; q.x += q.vx * dt; q.y += q.vy * dt; q.rot += q.vr * dt; q.flip += q.vf * dt;
+        if (q.life > q.max || q.y > H + 90) { bursts.splice(i, 1); continue; }
+        draw(q, Math.min(1, (q.max - q.life) / .6));
+      }
+      if (document.hidden) { running = false; return; }
+      requestAnimationFrame(frame);
+    }
+    function go() { if (running) return; running = true; last = 0; requestAnimationFrame(frame); }
+    document.addEventListener("visibilitychange", () => { if (!document.hidden && conf) go(); });
+    return { setTheme, burst, cannons };
+  })();
+
+  // ---------- tilt: card follows the finger; gentle idle drift; gyroscope on Android ----------
+  const Tilt = (() => {
+    const tilt = $("tilt"), card = $("card");
+    let tx = 0, ty = 0, cx = 0, cy = 0, touching = false, gyro = false, running = false;
+    const MAX = 9, t0 = performance.now();
+    function aim(x, y) {
+      const r = card.getBoundingClientRect();
+      if (!r.width) return;
+      const nx = Math.max(-1, Math.min(1, (x - (r.left + r.width / 2)) / (r.width / 2)));
+      const ny = Math.max(-1, Math.min(1, (y - (r.top + r.height / 2)) / (r.height / 2)));
+      tx = -ny * MAX; ty = nx * MAX;
+    }
+    addEventListener("pointerdown", (e) => { touching = true; aim(e.clientX, e.clientY); }, { passive: true });
+    addEventListener("pointermove", (e) => { if (touching || e.pointerType === "mouse") { touching = true; aim(e.clientX, e.clientY); } }, { passive: true });
+    ["pointerup", "pointercancel"].forEach((ev) => addEventListener(ev, () => { touching = false; }, { passive: true }));
+    document.addEventListener("mouseleave", () => { touching = false; });
+    if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission !== "function") {
+      addEventListener("deviceorientation", (e) => {
+        if (e.beta == null || touching) return;
+        gyro = true;
+        tx = Math.max(-MAX, Math.min(MAX, (e.beta - 40) / 3)); ty = Math.max(-MAX, Math.min(MAX, e.gamma / 3));
+      }, { passive: true });
+    }
+    function frame(now) {
+      if (!touching && !gyro) { const t = (now - t0) / 1000; tx = Math.sin(t * .6) * 2; ty = Math.cos(t * .45) * 3; }
+      cx += (tx - cx) * .08; cy += (ty - cy) * .08;
+      tilt.style.setProperty("--rx", cx.toFixed(2) + "deg");
+      tilt.style.setProperty("--ry", cy.toFixed(2) + "deg");
+      card.style.setProperty("--gx", (50 + cy * 5).toFixed(1) + "%");
+      card.style.setProperty("--gy", (35 - cx * 5).toFixed(1) + "%");
+      card.style.setProperty("--px", (cy * -.9).toFixed(1) + "px");
+      card.style.setProperty("--py", (cx * .9).toFixed(1) + "px");
+      if (!document.hidden) requestAnimationFrame(frame); else running = false;
+    }
+    function start() { if (reduce || running) return; running = true; requestAnimationFrame(frame); }
+    document.addEventListener("visibilitychange", () => { if (!document.hidden && $("card").classList.contains("show")) start(); });
+    return { start };
+  })();
+
+  // ---------- reveal moment per theme ----------
+  function revealFx(theme) {
     if (reduce) return;
-    clearInterval(particleTimer);
-    for (let i = 0; i < 8; i++) setTimeout(() => spawn(false), i * 400);
-    particleTimer = setInterval(() => { if (!document.hidden && particlesEl.childElementCount < pconf.count) spawn(false); }, 650);
+    const r = $("card").getBoundingClientRect(), cx = r.left + r.width / 2;
+    if (theme === "besties") FX.cannons(["#e0457b", "#8b5cf6", "#f59e0b", "#10b981", "#3b82f6", "#fde047"]);
+    else if (theme === "amigos") {
+      FX.cannons(["#ffcf70", "#7fd6cf", "#ff8a65", "#fff3b0", "#f59e0b"]);
+      setTimeout(() => {
+        const t = document.querySelector(".trio"); if (!t) return;
+        const b = t.getBoundingClientRect();
+        FX.burst(b.left + b.width / 2, b.top + b.height / 2, 18, { spread: Math.PI, min: 120, max: 320, gravity: 220, kinds: ["spark"], colors: ["#ffe08a", "#ffffff"], glow: true });
+      }, 2200);
+    }
+    else if (theme === "neon") FX.burst(cx, r.top + 120, 46, { spread: Math.PI, min: 250, max: 650, gravity: 380, kinds: ["spark"], glow: true });
+    else if (theme === "familia") FX.burst(cx, r.top + 90, 26, { spread: 1.1, min: 220, max: 520, gravity: 260, kinds: ["heart"] });
+    else FX.burst(cx, r.top + 40, 30, { spread: 1.3, min: 260, max: 620, gravity: 420 });
   }
-  function burst(n) { if (!reduce) for (let i = 0; i < n; i++) setTimeout(() => spawn(true), i * 40); }
 
   function splitChars(el, text) {
     el.textContent = "";
@@ -829,6 +1072,7 @@
     paintSound();
   });
   function startAudio() {
+    document.body.classList.add("opened");
     Music.unlock();
     if (data.spotify) Spot.play();
   }
@@ -842,7 +1086,8 @@
     soundBtn.classList.remove("hidden"); document.body.classList.add("sound-on"); paintSound();
     $("card").classList.add("show");
     document.body.classList.add("neon-on");
-    burst(26);
+    revealFx(document.body.dataset.theme);
+    Tilt.start();
   }
 
   function buildIntro(T, L) {
@@ -901,7 +1146,7 @@
       $("callBox").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
     } else {
       intro.innerHTML = `<div class="intro envelope-wrap" id="introBox" role="button" tabindex="0" aria-label="${L.aria}">
-        <div class="envelope"><div class="env-back"></div><div class="env-peek"></div><div class="env-front"></div><div class="env-flap"></div>
+        <div class="envelope"><div class="env-back"></div><div class="env-peek"><span>Happy Thanksgiving</span></div><div class="env-front"></div><div class="env-flap"></div>
           <div class="seal">${T.seal || "🍁"}</div><div class="env-to">${escapeHtml(who)}</div></div>
         <div class="tap">${L.tap}</div></div>`;
       const wrap = $("introBox");
@@ -926,10 +1171,9 @@
     const L = LABELS[lang];
     document.body.dataset.theme = theme;
     document.documentElement.lang = lang;
-    $("scene").innerHTML = T.scene();
-    pconf = T.particles;
-    particlesEl.innerHTML = "";
-    startParticles();
+    $("scene").innerHTML = T.scene() + '<div class="vignette"></div>';
+    FX.setTheme(T.particles);
+    if (["clasica", "familia", "elevador", "amigos"].includes(theme)) document.body.dataset.sheen = "1"; else delete document.body.dataset.sheen;
 
     $("art").innerHTML = T.art(lang);
     $("kicker").textContent = T.kicker ? T.kicker[lang] : "";
@@ -938,6 +1182,7 @@
     $("footer").innerHTML = T.footer ? T.footer(lang) : "";
     splitChars($("happy"), "Happy");
     splitChars($("thanks"), "Thanksgiving");
+    $("thanks").dataset.text = "Thanksgiving";
     $("name").textContent = data.display_name || "";
     $("name").style.display = data.display_name ? "block" : "none";
     fitName($("name"));
@@ -966,7 +1211,7 @@
     card.classList.remove("show");
     void card.offsetWidth;
     card.classList.add("show");
-    burst(20);
+    revealFx(document.body.dataset.theme);
   });
 
   async function load() {
