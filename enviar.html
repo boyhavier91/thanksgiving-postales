@@ -1,0 +1,817 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Enviar postales</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#7c2d12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Postales">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-180.png">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #fbf3e8; --surface: #ffffff; --ink: #3b2316; --muted: #8a6a55; --line: #ecdccb;
+    --accent: #c2410c; --accent-ink: #ffffff; --accent-soft: #fde8d7;
+    --ok: #15803d; --ok-soft: #dcfce7; --info: #1d4ed8; --info-soft: #dbeafe;
+    --wa: #1fa855; --msg: #0a7cff; --sms: #34c759; --danger: #b91c1c;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--ink); font: 16px/1.4 "Nunito", system-ui, sans-serif;
+    -webkit-tap-highlight-color: transparent; min-height: 100svh;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  }
+  button, input, textarea, select { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  .hidden { display: none !important; }
+
+  header.top {
+    position: sticky; top: 0; z-index: 10;
+    background: linear-gradient(135deg, #7c2d12, #c2410c 60%, #ea7a2e);
+    color: #fff; padding: calc(12px + env(safe-area-inset-top)) 16px 14px;
+    box-shadow: 0 4px 14px rgba(124, 45, 18, .25);
+  }
+  .top-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .brand { font-family: "Great Vibes", cursive; font-size: 32px; line-height: 1; }
+  .icon-btn {
+    background: rgba(255,255,255,.18); border: 0; color: #fff; width: 40px; height: 40px; border-radius: 12px;
+    display: grid; place-items: center; font-size: 19px;
+  }
+  .stats { display: flex; gap: 8px; margin-top: 12px; }
+  .stat { flex: 1; background: rgba(255,255,255,.16); border-radius: 12px; padding: 8px 10px; }
+  .stat b { display: block; font-size: 20px; font-weight: 800; }
+  .stat span { font-size: 12px; opacity: .9; }
+
+  main { padding: 16px; max-width: 640px; margin: 0 auto; }
+
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; }
+  .panel h2 { font-size: 17px; font-weight: 800; margin-bottom: 10px; }
+  .muted { color: var(--muted); font-size: 14px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn {
+    border: 0; border-radius: 12px; padding: 11px 14px; font-weight: 700; background: var(--accent-soft); color: var(--accent);
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px;
+  }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); }
+  .btn.ghost { background: transparent; border: 1px solid var(--line); color: var(--ink); }
+  .btn.danger { background: #fee2e2; color: var(--danger); }
+  .btn.block { width: 100%; }
+  .btn:disabled { opacity: .55; }
+  .btn:active { transform: scale(.98); }
+
+  label.field { display: block; margin-bottom: 12px; }
+  label.field > span { display: block; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 5px; }
+  input[type=text], input[type=email], input[type=password], input[type=tel], input[type=search], textarea, select {
+    width: 100%; border: 1px solid var(--line); background: #fffdfa; border-radius: 12px; padding: 11px 12px; font-size: 16px; outline: none;
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(194, 65, 12, .15); }
+  textarea { resize: vertical; min-height: 90px; line-height: 1.45; }
+
+  .seg { display: inline-flex; background: #f3e7da; border-radius: 10px; padding: 3px; }
+  .seg button { border: 0; background: transparent; padding: 7px 12px; border-radius: 8px; font-weight: 700; font-size: 14px; color: var(--muted); }
+  .seg button.on { background: #fff; color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+
+  .toolbar { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
+  .toolbar input { flex: 1; }
+  .chips { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 12px; padding-bottom: 2px; }
+  .chip { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 6px 12px; font-size: 14px; font-weight: 700; white-space: nowrap; color: var(--muted); }
+  .chip.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+  .contact { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; }
+  .c-head { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+  .c-name { font-weight: 800; font-size: 18px; }
+  .c-sub { color: var(--muted); font-size: 13px; }
+  .badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .badge { font-size: 12px; font-weight: 800; padding: 3px 8px; border-radius: 999px; background: #f3e7da; color: var(--muted); }
+  .badge.sent { background: var(--info-soft); color: var(--info); }
+  .badge.open { background: var(--ok-soft); color: var(--ok); }
+  .ded {
+    margin-top: 10px; background: #fff8ef; border: 1px dashed #e8c9a8; border-radius: 12px; padding: 10px 12px; font-size: 14px; color: #5c3420;
+    width: 100%; text-align: left;
+  }
+  .ded.empty { color: var(--muted); font-weight: 700; }
+  .send { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+  .send .btn { color: #fff; font-size: 14px; padding: 10px 6px; }
+  .send .sms { background: var(--sms); }
+  .send .wa { background: var(--wa); }
+  .send .ms { background: var(--msg); }
+  .c-tools { display: flex; gap: 6px; }
+  .mini { border: 1px solid var(--line); background: #fff; border-radius: 10px; min-width: 38px; height: 38px; font-size: 16px; padding: 0 8px; font-weight: 700; color: var(--muted); }
+
+  .empty-state { text-align: center; padding: 30px 16px; color: var(--muted); }
+  .empty-state .big { font-size: 46px; }
+
+  /* Sheets */
+  .backdrop { position: fixed; inset: 0; background: rgba(40, 20, 10, .45); z-index: 40; display: flex; align-items: flex-end; justify-content: center; }
+  .sheet {
+    background: var(--bg); width: 100%; max-width: 640px; max-height: 92svh; overflow-y: auto;
+    border-radius: 22px 22px 0 0; padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
+    animation: up .25s ease;
+  }
+  @keyframes up { from { transform: translateY(30px); opacity: .5; } }
+  .sheet-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .sheet-head h3 { font-size: 19px; font-weight: 800; }
+  .close { border: 0; background: #f3e7da; width: 34px; height: 34px; border-radius: 50%; font-size: 18px; color: var(--muted); }
+  .ai-box { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px; margin: 12px 0; }
+  .ai-box h4 { font-size: 15px; font-weight: 800; margin-bottom: 8px; }
+  .tones { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .counter { text-align: right; font-size: 12px; color: var(--muted); margin-top: -8px; margin-bottom: 10px; }
+  .counter.over { color: var(--danger); font-weight: 800; }
+  .import-list { max-height: 50svh; overflow-y: auto; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+  .import-item { display: grid; grid-template-columns: 28px 1fr; gap: 8px; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  .import-item:last-child { border-bottom: 0; }
+  .import-item input[type=checkbox] { width: 22px; height: 22px; accent-color: var(--accent); }
+  .import-item input[type=text] { padding: 7px 10px; font-size: 15px; }
+  .help { background: #fff; border-radius: 12px; padding: 12px; font-size: 14px; border: 1px solid var(--line); margin-bottom: 12px; }
+  .help ol { padding-left: 20px; } .help li { margin: 3px 0; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+    background: #2b1a10; color: #fff; padding: 11px 16px; border-radius: 12px; font-weight: 700; font-size: 14px; z-index: 60;
+    max-width: calc(100% - 32px); box-shadow: 0 8px 24px rgba(0,0,0,.25); animation: up .2s ease;
+  }
+  .spinner { width: 16px; height: 16px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .auth { max-width: 420px; margin: 40px auto; }
+  .auth .brand { color: var(--accent); font-size: 46px; text-align: center; margin-bottom: 6px; }
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<section id="authView" class="hidden">
+  <main class="auth">
+    <div class="brand">Postales 🦃</div>
+    <p class="muted" style="text-align:center;margin-bottom:18px">Panel privado para enviar tus postales de Thanksgiving.</p>
+    <div class="panel">
+      <div class="seg" style="margin-bottom:14px">
+        <button id="tabLogin" class="on" type="button">Entrar</button>
+        <button id="tabSignup" type="button">Crear cuenta</button>
+      </div>
+      <form id="authForm">
+        <label class="field"><span>Correo</span><input id="authEmail" type="email" autocomplete="email" required></label>
+        <label class="field"><span>Contraseña</span><input id="authPass" type="password" autocomplete="current-password" minlength="8" required></label>
+        <p id="signupNote" class="muted hidden" style="margin-bottom:12px">La primera cuenta que se crea queda como dueña del panel. Nadie más puede usarlo.</p>
+        <button class="btn primary block" id="authBtn" type="submit">Entrar</button>
+        <p id="authMsg" class="muted" style="margin-top:12px"></p>
+      </form>
+    </div>
+  </main>
+</section>
+
+<!-- APP -->
+<section id="appView" class="hidden">
+  <header class="top">
+    <div class="top-row">
+      <div class="brand">Postales 🦃</div>
+      <div class="row">
+        <button class="icon-btn" id="refreshBtn" type="button" aria-label="Actualizar">⟳</button>
+        <button class="icon-btn" id="settingsBtn" type="button" aria-label="Ajustes">⚙︎</button>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="stTotal">0</b><span>Contactos</span></div>
+      <div class="stat"><b id="stSent">0</b><span>Enviadas</span></div>
+      <div class="stat"><b id="stOpen">0</b><span>Abiertas 👀</span></div>
+    </div>
+  </header>
+
+  <main>
+    <div class="panel" id="addPanel">
+      <h2>Agregar contactos</h2>
+      <div class="row">
+        <button class="btn primary" id="importBtn" type="button">📇 Importar de Contactos</button>
+        <button class="btn" id="addOneBtn" type="button">＋ Agregar uno</button>
+        <button class="btn ghost" id="pasteBtn" type="button">Pegar lista</button>
+      </div>
+      <input id="vcfInput" type="file" accept=".vcf,text/vcard,text/x-vcard,text/directory" multiple class="hidden">
+    </div>
+
+    <div class="toolbar">
+      <input id="search" type="search" placeholder="Buscar por nombre o número" autocomplete="off">
+    </div>
+    <div class="chips" id="filters">
+      <button class="chip on" data-f="all" type="button">Todos</button>
+      <button class="chip" data-f="pending" type="button">Por enviar</button>
+      <button class="chip" data-f="sent" type="button">Enviadas</button>
+      <button class="chip" data-f="opened" type="button">Abiertas</button>
+      <button class="chip" data-f="nodedication" type="button">Sin dedicatoria</button>
+    </div>
+
+    <div id="list"></div>
+  </main>
+</section>
+
+<div id="sheetRoot"></div>
+<div id="toastRoot"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+(function () {
+  const cfg = window.APP_CONFIG;
+  const sb = supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, storageKey: "postales-auth" },
+  });
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  const DEFAULT_MSG = {
+    es: "¡Happy Thanksgiving, {nombre}! 🦃🍂 Te preparé una postal especial: {link}",
+    en: "Happy Thanksgiving, {nombre}! 🦃🍂 I made a little card just for you: {link}",
+  };
+  const TONES = [
+    ["calido", "Cálido"], ["familiar", "Familiar"], ["divertido", "Divertido"], ["formal", "Formal"], ["espiritual", "Con fe"],
+  ];
+  const DED_SOFT_LIMIT = 240;
+
+  let user = null;
+  let cards = [];
+  let settings = { signature: "", default_lang: "es", msg_es: "", msg_en: "" };
+  let filter = "all";
+  let query = "";
+
+  // ---------- helpers ----------
+  function toast(msg, ms = 2600) {
+    const el = document.createElement("div");
+    el.className = "toast";
+    el.textContent = msg;
+    $("toastRoot").innerHTML = "";
+    $("toastRoot").appendChild(el);
+    setTimeout(() => el.remove(), ms);
+  }
+  function normalizePhone(raw) {
+    if (!raw) return "";
+    const s = String(raw).trim();
+    const plus = s.startsWith("+");
+    let d = s.replace(/\D/g, "");
+    if (!d) return "";
+    if (plus) return "+" + d;
+    if (d.startsWith("00")) return "+" + d.slice(2);
+    if (d.length === 10) return "+1" + d;
+    if (d.length === 11 && d.startsWith("1")) return "+" + d;
+    return "+" + d;
+  }
+  function prettyPhone(p) {
+    const m = /^\+1(\d{3})(\d{3})(\d{4})$/.exec(p || "");
+    return m ? `(${m[1]}) ${m[2]}-${m[3]}` : p || "";
+  }
+  function firstName(full) {
+    const t = (full || "").trim().split(/\s+/)[0] || "";
+    return t;
+  }
+  function cardLink(c) {
+    const base = new URL("./", location.href);
+    base.search = "";
+    base.hash = "";
+    return base.href + "?c=" + encodeURIComponent(c.code);
+  }
+  function messageFor(c) {
+    const tpl = (c.lang === "en" ? settings.msg_en : settings.msg_es) || DEFAULT_MSG[c.lang] || DEFAULT_MSG.es;
+    return tpl.replaceAll("{nombre}", c.display_name).replaceAll("{name}", c.display_name).replaceAll("{link}", cardLink(c));
+  }
+  function timeAgo(iso) {
+    if (!iso) return "";
+    const s = (Date.now() - new Date(iso).getTime()) / 1000;
+    if (s < 60) return "hace un momento";
+    if (s < 3600) return `hace ${Math.floor(s / 60)} min`;
+    if (s < 86400) return `hace ${Math.floor(s / 3600)} h`;
+    return new Date(iso).toLocaleDateString("es", { day: "numeric", month: "short" });
+  }
+  const VIA = { sms: "SMS", whatsapp: "WhatsApp", messenger: "Messenger" };
+
+  // ---------- vCard ----------
+  function parseVCards(text) {
+    const unfolded = text.replace(/\r\n/g, "\n").replace(/\n[ \t]/g, "");
+    const blocks = unfolded.split(/BEGIN:VCARD/i).slice(1);
+    const out = [];
+    for (const b of blocks) {
+      const lines = b.split("\n");
+      let fn = "", given = "", family = "", org = "";
+      const phones = [];
+      for (const line of lines) {
+        const idx = line.indexOf(":");
+        if (idx < 0) continue;
+        const keyFull = line.slice(0, idx);
+        const val = line.slice(idx + 1).replace(/\\n/gi, " ").replace(/\\([,;\\])/g, "$1").trim();
+        const key = keyFull.replace(/^item\d+\./i, "").split(";")[0].toUpperCase();
+        if (key === "FN") fn = val;
+        else if (key === "N") { const p = line.slice(idx + 1).split(";"); family = (p[0] || "").replace(/\\/g, "").trim(); given = (p[1] || "").replace(/\\/g, "").trim(); }
+        else if (key === "ORG") org = val.split(";")[0];
+        else if (key === "TEL") {
+          const params = keyFull.toUpperCase();
+          const score = /CELL|IPHONE|MOBILE/.test(params) ? 3 : /PREF/.test(params) ? 2 : /FAX/.test(params) ? -1 : 1;
+          phones.push({ v: val.replace(/^tel:/i, ""), score });
+        }
+      }
+      const full = fn || [given, family].filter(Boolean).join(" ") || org;
+      if (!full) continue;
+      phones.sort((a, b) => b.score - a.score);
+      const phone = phones.length ? normalizePhone(phones[0].v) : "";
+      out.push({ full_name: full, display_name: given || (fn || family ? firstName(full) : full), phone });
+    }
+    return out;
+  }
+  function parsePasted(text) {
+    return text.split(/\n/).map((l) => l.trim()).filter(Boolean).map((l) => {
+      const m = /^(.*?)[\s,;:\t-]+(\+?[\d\s().-]{7,})$/.exec(l);
+      if (!m) return null;
+      const full = m[1].trim();
+      return { full_name: full, display_name: firstName(full), phone: normalizePhone(m[2]) };
+    }).filter(Boolean);
+  }
+
+  // ---------- data ----------
+  async function loadAll() {
+    const [c, s] = await Promise.all([
+      sb.from("cards").select("*").order("created_at", { ascending: true }),
+      sb.from("owner_settings").select("*").maybeSingle(),
+    ]);
+    if (c.error) { toast("No pude cargar los contactos: " + c.error.message, 5000); return; }
+    cards = c.data || [];
+    if (s.data) settings = Object.assign(settings, s.data);
+    renderList();
+  }
+  async function insertContacts(rows) {
+    const payload = rows.map((r) => ({
+      full_name: r.full_name.slice(0, 120),
+      display_name: (r.display_name || firstName(r.full_name)).slice(0, 60),
+      phone: r.phone || null,
+      lang: r.lang || settings.default_lang || "es",
+    }));
+    const { data, error } = await sb.from("cards").upsert(payload, { onConflict: "owner_id,phone", ignoreDuplicates: true }).select();
+    if (error) { toast("Error al guardar: " + error.message, 5000); return 0; }
+    await loadAll();
+    return (data || []).length;
+  }
+  async function updateCard(id, patch) {
+    const { data, error } = await sb.from("cards").update(patch).eq("id", id).select().single();
+    if (error) { toast("No se pudo guardar: " + error.message, 4000); return null; }
+    const i = cards.findIndex((c) => c.id === id);
+    if (i >= 0) cards[i] = data;
+    renderList();
+    return data;
+  }
+
+  // ---------- list ----------
+  function visibleCards() {
+    const q = query.trim().toLowerCase();
+    return cards.filter((c) => {
+      if (filter === "pending" && c.sent_at) return false;
+      if (filter === "sent" && !c.sent_at) return false;
+      if (filter === "opened" && !c.open_count) return false;
+      if (filter === "nodedication" && c.dedication) return false;
+      if (!q) return true;
+      return (c.full_name + " " + c.display_name + " " + (c.phone || "")).toLowerCase().includes(q);
+    });
+  }
+  function renderList() {
+    $("stTotal").textContent = cards.length;
+    $("stSent").textContent = cards.filter((c) => c.sent_at).length;
+    $("stOpen").textContent = cards.filter((c) => c.open_count > 0).length;
+    const list = $("list");
+    const items = visibleCards();
+    if (!cards.length) {
+      list.innerHTML = `<div class="empty-state"><div class="big">🍂</div><p><b>Aún no tienes contactos.</b></p><p>Importa desde tu iPhone o agrégalos uno por uno.</p></div>`;
+      return;
+    }
+    if (!items.length) { list.innerHTML = `<div class="empty-state"><p>No hay contactos con este filtro.</p></div>`; return; }
+    list.innerHTML = items.map((c) => {
+      const badges = [];
+      badges.push(`<span class="badge">${c.lang === "en" ? "EN" : "ES"}</span>`);
+      if (c.sent_at) badges.push(`<span class="badge sent">Enviada · ${VIA[c.sent_via] || ""} · ${esc(timeAgo(c.sent_at))}</span>`);
+      else badges.push(`<span class="badge">Por enviar</span>`);
+      if (c.open_count) badges.push(`<span class="badge open">👀 Abierta ${c.open_count > 1 ? c.open_count + " veces" : ""} · ${esc(timeAgo(c.last_opened_at))}</span>`);
+      const noPhone = !c.phone;
+      return `
+      <article class="contact" data-id="${c.id}">
+        <div class="c-head">
+          <div>
+            <div class="c-name">${esc(c.display_name)}</div>
+            <div class="c-sub">${esc(c.full_name)}${c.phone ? " · " + esc(prettyPhone(c.phone)) : " · sin número"}</div>
+            <div class="badges">${badges.join("")}</div>
+          </div>
+          <div class="c-tools">
+            <button class="mini" data-act="view" type="button" aria-label="Ver postal">👁</button>
+            <button class="mini" data-act="edit" type="button" aria-label="Editar">⋯</button>
+          </div>
+        </div>
+        <button class="ded ${c.dedication ? "" : "empty"}" data-act="ded" type="button">${c.dedication ? "✍️ " + esc(c.dedication) : "✍️ Agregar dedicatoria (opcional)"}</button>
+        <div class="send">
+          <button class="btn sms" data-act="sms" type="button" ${noPhone ? "disabled" : ""}>💬 SMS</button>
+          <button class="btn wa" data-act="wa" type="button" ${noPhone ? "disabled" : ""}>WhatsApp</button>
+          <button class="btn ms" data-act="ms" type="button">Messenger</button>
+        </div>
+      </article>`;
+    }).join("");
+  }
+
+  $("list").addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-act]");
+    if (!btn) return;
+    const id = btn.closest(".contact").dataset.id;
+    const c = cards.find((x) => x.id === id);
+    if (!c) return;
+    const act = btn.dataset.act;
+    if (act === "view") window.open(cardLink(c) + "&preview=1", "_blank");
+    else if (act === "edit") openEditSheet(c);
+    else if (act === "ded") openDedicationSheet(c);
+    else if (act === "sms") send(c, "sms");
+    else if (act === "wa") send(c, "whatsapp");
+    else if (act === "ms") send(c, "messenger");
+  });
+
+  function markSent(c, via) {
+    const now = new Date().toISOString();
+    const i = cards.findIndex((x) => x.id === c.id);
+    if (i >= 0) { cards[i] = Object.assign({}, cards[i], { sent_via: via, sent_at: now }); renderList(); }
+    sb.from("cards").update({ sent_via: via, sent_at: now }).eq("id", c.id).then(({ error }) => { if (error) console.warn(error); });
+  }
+
+  async function send(c, via) {
+    const msg = messageFor(c);
+    if (via === "sms") {
+      markSent(c, via);
+      location.href = `sms:${c.phone}&body=${encodeURIComponent(msg)}`;
+    } else if (via === "whatsapp") {
+      markSent(c, via);
+      location.href = `https://wa.me/${c.phone.replace(/\D/g, "")}?text=${encodeURIComponent(msg)}`;
+    } else {
+      const link = cardLink(c);
+      const textOnly = msg.replace(link, "").replace(/[:\s]+$/, "").trim();
+      if (navigator.share) {
+        try {
+          await navigator.share({ text: textOnly, url: link });
+          markSent(c, via);
+          toast("Listo. Marcada como enviada por Messenger.");
+        } catch (err) {
+          if (err && err.name !== "AbortError") toast("No se pudo abrir el menú de compartir.");
+        }
+      } else {
+        try { await navigator.clipboard.writeText(msg); toast("Mensaje copiado. Pégalo en Messenger."); markSent(c, via); }
+        catch { prompt("Copia este mensaje y pégalo en Messenger:", msg); }
+      }
+    }
+  }
+
+  // ---------- sheets ----------
+  function openSheet(html, onMount) {
+    const root = $("sheetRoot");
+    root.innerHTML = `<div class="backdrop"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`;
+    const bd = root.querySelector(".backdrop");
+    bd.addEventListener("click", (e) => { if (e.target === bd) closeSheet(); });
+    root.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", closeSheet));
+    document.body.style.overflow = "hidden";
+    if (onMount) onMount(root.querySelector(".sheet"));
+  }
+  function closeSheet() { $("sheetRoot").innerHTML = ""; document.body.style.overflow = ""; }
+
+  function segHtml(id, value) {
+    return `<div class="seg" id="${id}"><button type="button" data-v="es" class="${value === "es" ? "on" : ""}">Español</button><button type="button" data-v="en" class="${value === "en" ? "on" : ""}">English</button></div>`;
+  }
+  function bindSeg(el, onChange) {
+    el.addEventListener("click", (e) => {
+      const b = e.target.closest("button[data-v]");
+      if (!b) return;
+      el.querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
+      onChange(b.dataset.v);
+    });
+  }
+
+  function openDedicationSheet(c) {
+    let lang = c.lang;
+    let tone = "calido";
+    openSheet(`
+      <div class="sheet-head"><h3>Dedicatoria para ${esc(c.display_name)}</h3><button class="close" data-close type="button">✕</button></div>
+      <p class="muted" style="margin-bottom:12px">Es opcional. Aparece en la postal debajo del nombre.</p>
+      <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:12px">
+        <span class="muted"><b>Idioma de la postal</b></span>${segHtml("dLang", lang)}
+      </div>
+      <label class="field"><span>Texto</span><textarea id="dText" maxlength="600" placeholder="Escribe algo personal o usa la IA…">${esc(c.dedication || "")}</textarea></label>
+      <div class="counter" id="dCount"></div>
+
+      <div class="ai-box">
+        <h4>✨ Ayuda con IA</h4>
+        <div class="tones" id="dTones">${TONES.map(([k, l]) => `<button type="button" class="chip ${k === tone ? "on" : ""}" data-t="${k}">${l}</button>`).join("")}</div>
+        <label class="field"><span>¿Quién es para ti? (opcional)</span><input id="dRel" type="text" maxlength="100" placeholder="ej: mi tía, mi compadre, un cliente"></label>
+        <label class="field"><span>Algo personal para mencionar (opcional)</span><input id="dNotes" type="text" maxlength="400" placeholder="ej: este año nació su bebé; nos vimos en la boda"></label>
+        <div class="row">
+          <button class="btn primary" id="dGen" type="button">✨ Escribir con IA</button>
+          <button class="btn" id="dImprove" type="button">Mejorar mi texto</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="btn primary" id="dSave" type="button" style="flex:1">Guardar</button>
+        ${c.dedication ? `<button class="btn danger" id="dRemove" type="button">Quitar</button>` : ""}
+      </div>
+    `, (sheet) => {
+      const ta = sheet.querySelector("#dText");
+      const count = sheet.querySelector("#dCount");
+      const upd = () => { const n = ta.value.length; count.textContent = `${n}/${DED_SOFT_LIMIT}`; count.classList.toggle("over", n > DED_SOFT_LIMIT); };
+      ta.addEventListener("input", upd); upd();
+      bindSeg(sheet.querySelector("#dLang"), (v) => { lang = v; });
+      sheet.querySelector("#dTones").addEventListener("click", (e) => {
+        const b = e.target.closest("[data-t]"); if (!b) return;
+        tone = b.dataset.t;
+        sheet.querySelectorAll("#dTones .chip").forEach((x) => x.classList.toggle("on", x === b));
+      });
+      async function runAI(improve) {
+        const btn = sheet.querySelector(improve ? "#dImprove" : "#dGen");
+        if (improve && !ta.value.trim()) { toast("Escribe algo primero para mejorarlo."); return; }
+        const old = btn.innerHTML;
+        btn.disabled = true; btn.innerHTML = `<span class="spinner"></span> Escribiendo…`;
+        try {
+          const { data, error } = await sb.functions.invoke("dedicatoria", {
+            body: {
+              name: c.display_name, lang, tone,
+              relation: sheet.querySelector("#dRel").value,
+              notes: sheet.querySelector("#dNotes").value,
+              draft: improve ? ta.value : "",
+              sender: settings.signature || "",
+            },
+          });
+          if (error) {
+            let code = "";
+            try { code = (await error.context.json()).error; } catch {}
+            if (code === "missing_api_key") toast("Falta configurar la clave de la IA en Supabase.", 5000);
+            else if (code === "refusal") toast("La IA no pudo escribir eso. Prueba con otras notas.", 4500);
+            else toast("La IA no respondió. Intenta de nuevo.", 4000);
+            return;
+          }
+          ta.value = data.text; upd(); ta.focus();
+        } finally { btn.disabled = false; btn.innerHTML = old; }
+      }
+      sheet.querySelector("#dGen").addEventListener("click", () => runAI(false));
+      sheet.querySelector("#dImprove").addEventListener("click", () => runAI(true));
+      sheet.querySelector("#dSave").addEventListener("click", async () => {
+        const text = ta.value.trim();
+        const ok = await updateCard(c.id, { dedication: text || null, lang });
+        if (ok) { closeSheet(); toast(text ? "Dedicatoria guardada." : "Guardado."); }
+      });
+      const rm = sheet.querySelector("#dRemove");
+      if (rm) rm.addEventListener("click", async () => { const ok = await updateCard(c.id, { dedication: null }); if (ok) { closeSheet(); toast("Dedicatoria quitada."); } });
+    });
+  }
+
+  function openEditSheet(c) {
+    let lang = c.lang;
+    openSheet(`
+      <div class="sheet-head"><h3>Editar contacto</h3><button class="close" data-close type="button">✕</button></div>
+      <label class="field"><span>Nombre que sale en la postal</span><input id="eDisplay" type="text" maxlength="60" value="${esc(c.display_name)}"></label>
+      <label class="field"><span>Nombre completo</span><input id="eFull" type="text" maxlength="120" value="${esc(c.full_name)}"></label>
+      <label class="field"><span>Teléfono</span><input id="ePhone" type="tel" value="${esc(c.phone || "")}" placeholder="(305) 555-1234"></label>
+      <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:14px"><span class="muted"><b>Idioma</b></span>${segHtml("eLang", lang)}</div>
+      <div class="row" style="margin-bottom:10px">
+        <button class="btn primary" id="eSave" type="button" style="flex:1">Guardar</button>
+      </div>
+      <div class="row">
+        <button class="btn ghost" id="eCopy" type="button" style="flex:1">Copiar link</button>
+        ${c.sent_at ? `<button class="btn ghost" id="eUnsent" type="button" style="flex:1">Marcar no enviada</button>` : ""}
+        <button class="btn danger" id="eDelete" type="button">Borrar</button>
+      </div>
+    `, (sheet) => {
+      bindSeg(sheet.querySelector("#eLang"), (v) => { lang = v; });
+      sheet.querySelector("#eSave").addEventListener("click", async () => {
+        const display_name = sheet.querySelector("#eDisplay").value.trim();
+        const full_name = sheet.querySelector("#eFull").value.trim() || display_name;
+        if (!display_name) { toast("El nombre no puede estar vacío."); return; }
+        const phone = normalizePhone(sheet.querySelector("#ePhone").value) || null;
+        const ok = await updateCard(c.id, { display_name, full_name, phone, lang });
+        if (ok) { closeSheet(); toast("Guardado."); }
+      });
+      sheet.querySelector("#eCopy").addEventListener("click", async () => {
+        try { await navigator.clipboard.writeText(cardLink(c)); toast("Link copiado."); } catch { prompt("Link:", cardLink(c)); }
+      });
+      const un = sheet.querySelector("#eUnsent");
+      if (un) un.addEventListener("click", async () => { const ok = await updateCard(c.id, { sent_at: null, sent_via: null }); if (ok) closeSheet(); });
+      sheet.querySelector("#eDelete").addEventListener("click", async () => {
+        if (!confirm(`¿Borrar a ${c.display_name}? Su link dejará de funcionar.`)) return;
+        const { error } = await sb.from("cards").delete().eq("id", c.id);
+        if (error) { toast("No se pudo borrar: " + error.message); return; }
+        cards = cards.filter((x) => x.id !== c.id);
+        renderList(); closeSheet(); toast("Contacto borrado.");
+      });
+    });
+  }
+
+  function openAddOneSheet() {
+    let lang = settings.default_lang || "es";
+    openSheet(`
+      <div class="sheet-head"><h3>Agregar contacto</h3><button class="close" data-close type="button">✕</button></div>
+      <label class="field"><span>Nombre completo</span><input id="aFull" type="text" maxlength="120" autocomplete="off"></label>
+      <label class="field"><span>Nombre que sale en la postal</span><input id="aDisplay" type="text" maxlength="60" placeholder="se llena solo con el primer nombre"></label>
+      <label class="field"><span>Teléfono</span><input id="aPhone" type="tel" placeholder="(305) 555-1234"></label>
+      <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:14px"><span class="muted"><b>Idioma</b></span>${segHtml("aLang", lang)}</div>
+      <button class="btn primary block" id="aSave" type="button">Agregar</button>
+    `, (sheet) => {
+      const full = sheet.querySelector("#aFull"), disp = sheet.querySelector("#aDisplay");
+      let touched = false;
+      disp.addEventListener("input", () => { touched = true; });
+      full.addEventListener("input", () => { if (!touched) disp.value = firstName(full.value); });
+      bindSeg(sheet.querySelector("#aLang"), (v) => { lang = v; });
+      full.focus();
+      sheet.querySelector("#aSave").addEventListener("click", async () => {
+        const f = full.value.trim();
+        if (!f) { toast("Escribe el nombre."); return; }
+        const n = await insertContacts([{ full_name: f, display_name: disp.value.trim() || firstName(f), phone: normalizePhone(sheet.querySelector("#aPhone").value), lang }]);
+        if (n) { closeSheet(); toast("Contacto agregado."); } else toast("Ese número ya estaba en la lista.");
+      });
+    });
+  }
+
+  function openImportReview(rows, sourceLabel) {
+    const existing = new Set(cards.map((c) => c.phone).filter(Boolean));
+    const seen = new Set();
+    const items = rows.filter((r) => {
+      if (r.phone) { if (seen.has(r.phone)) return false; seen.add(r.phone); }
+      return true;
+    }).map((r) => Object.assign(r, { dup: !!(r.phone && existing.has(r.phone)) }));
+    let lang = settings.default_lang || "es";
+    openSheet(`
+      <div class="sheet-head"><h3>${esc(sourceLabel)}: ${items.length}</h3><button class="close" data-close type="button">✕</button></div>
+      <p class="muted" style="margin-bottom:10px">Revisa el nombre que saldrá en cada postal. Desmarca los que no quieras.</p>
+      <div class="row" style="margin-bottom:10px;justify-content:space-between;align-items:center">
+        <div class="row"><button class="btn ghost" id="iAll" type="button">Todos</button><button class="btn ghost" id="iNone" type="button">Ninguno</button></div>
+        ${segHtml("iLang", lang)}
+      </div>
+      <div class="import-list">
+        ${items.map((r, i) => `
+          <div class="import-item">
+            <input type="checkbox" data-i="${i}" ${r.dup || !r.phone ? "" : "checked"} aria-label="Incluir ${esc(r.full_name)}">
+            <div>
+              <input type="text" data-n="${i}" value="${esc(r.display_name)}" maxlength="60">
+              <div class="c-sub" style="margin-top:3px">${esc(r.full_name)} · ${r.phone ? esc(prettyPhone(r.phone)) : "sin número"}${r.dup ? " · ya está en la lista" : ""}</div>
+            </div>
+          </div>`).join("")}
+      </div>
+      <button class="btn primary block" id="iSave" type="button" style="margin-top:12px">Agregar seleccionados</button>
+    `, (sheet) => {
+      bindSeg(sheet.querySelector("#iLang"), (v) => { lang = v; });
+      const boxes = () => [...sheet.querySelectorAll("input[type=checkbox][data-i]")];
+      const updBtn = () => { sheet.querySelector("#iSave").textContent = `Agregar ${boxes().filter((b) => b.checked).length} contactos`; };
+      sheet.addEventListener("change", updBtn); updBtn();
+      sheet.querySelector("#iAll").addEventListener("click", () => { boxes().forEach((b) => (b.checked = true)); updBtn(); });
+      sheet.querySelector("#iNone").addEventListener("click", () => { boxes().forEach((b) => (b.checked = false)); updBtn(); });
+      sheet.querySelector("#iSave").addEventListener("click", async (e) => {
+        const chosen = boxes().filter((b) => b.checked).map((b) => {
+          const i = +b.dataset.i;
+          const r = items[i];
+          return { full_name: r.full_name, display_name: sheet.querySelector(`[data-n="${i}"]`).value.trim() || r.display_name, phone: r.phone, lang };
+        });
+        if (!chosen.length) { toast("No seleccionaste ninguno."); return; }
+        e.target.disabled = true; e.target.innerHTML = `<span class="spinner"></span> Guardando…`;
+        const n = await insertContacts(chosen);
+        closeSheet();
+        toast(`${n} contacto${n === 1 ? "" : "s"} agregado${n === 1 ? "" : "s"}.${n < chosen.length ? " Los repetidos se omitieron." : ""}`, 3500);
+      });
+    });
+  }
+
+  function openImportHelp() {
+    openSheet(`
+      <div class="sheet-head"><h3>Importar de tu iPhone</h3><button class="close" data-close type="button">✕</button></div>
+      <div class="help">
+        <b>Opción rápida: una lista solo para Thanksgiving</b>
+        <ol>
+          <li>Abre <b>Contactos</b> y toca <b>‹ Listas</b> arriba a la izquierda.</li>
+          <li>Toca <b>Agregar lista</b>, llámala "Thanksgiving" y añade a las personas.</li>
+          <li>Mantén presionada la lista → <b>Exportar</b> → <b>Guardar en Archivos</b>.</li>
+          <li>Vuelve aquí y toca <b>Elegir archivo</b>.</li>
+        </ol>
+        <p class="muted" style="margin-top:8px">También puedes exportar "Todos los contactos" y elegir aquí a quién incluir.</p>
+      </div>
+      <button class="btn primary block" id="hPick" type="button">Elegir archivo (.vcf)</button>
+    `, (sheet) => {
+      sheet.querySelector("#hPick").addEventListener("click", () => { closeSheet(); $("vcfInput").click(); });
+    });
+  }
+
+  function openPasteSheet() {
+    openSheet(`
+      <div class="sheet-head"><h3>Pegar lista</h3><button class="close" data-close type="button">✕</button></div>
+      <p class="muted" style="margin-bottom:10px">Un contacto por línea: nombre y número.</p>
+      <textarea id="pText" rows="8" placeholder="María González, 305 555 1234&#10;Tío Pedro 786-555-9876"></textarea>
+      <button class="btn primary block" id="pGo" type="button" style="margin-top:12px">Revisar</button>
+    `, (sheet) => {
+      sheet.querySelector("#pGo").addEventListener("click", () => {
+        const rows = parsePasted(sheet.querySelector("#pText").value);
+        if (!rows.length) { toast("No encontré nombres con número."); return; }
+        openImportReview(rows, "Contactos encontrados");
+      });
+    });
+  }
+
+  function openSettings() {
+    let lang = settings.default_lang || "es";
+    openSheet(`
+      <div class="sheet-head"><h3>Ajustes</h3><button class="close" data-close type="button">✕</button></div>
+      <label class="field"><span>Tu firma en la postal</span><input id="sSig" type="text" maxlength="80" value="${esc(settings.signature || "")}" placeholder="ej: Con cariño, Javier"></label>
+      <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:14px"><span class="muted"><b>Idioma por defecto</b></span>${segHtml("sLang", lang)}</div>
+      <label class="field"><span>Mensaje en español</span><textarea id="sEs" maxlength="400">${esc(settings.msg_es || DEFAULT_MSG.es)}</textarea></label>
+      <label class="field"><span>Message in English</span><textarea id="sEn" maxlength="400">${esc(settings.msg_en || DEFAULT_MSG.en)}</textarea></label>
+      <p class="muted" style="margin:-4px 0 14px">Usa <b>{nombre}</b> y <b>{link}</b>; se reemplazan para cada persona.</p>
+      <button class="btn primary block" id="sSave" type="button">Guardar ajustes</button>
+      <button class="btn ghost block" id="sOut" type="button" style="margin-top:10px">Cerrar sesión</button>
+    `, (sheet) => {
+      bindSeg(sheet.querySelector("#sLang"), (v) => { lang = v; });
+      sheet.querySelector("#sSave").addEventListener("click", async () => {
+        const es = sheet.querySelector("#sEs").value.trim(), en = sheet.querySelector("#sEn").value.trim();
+        if ((es && !es.includes("{link}")) || (en && !en.includes("{link}"))) { toast("Cada mensaje debe incluir {link}."); return; }
+        const row = { owner_id: user.id, signature: sheet.querySelector("#sSig").value.trim() || null, default_lang: lang, msg_es: es || null, msg_en: en || null, updated_at: new Date().toISOString() };
+        const { data, error } = await sb.from("owner_settings").upsert(row).select().single();
+        if (error) { toast("No se pudo guardar: " + error.message); return; }
+        settings = Object.assign(settings, data);
+        closeSheet(); toast("Ajustes guardados.");
+      });
+      sheet.querySelector("#sOut").addEventListener("click", async () => { await sb.auth.signOut(); closeSheet(); });
+    });
+  }
+
+  // ---------- wiring ----------
+  $("importBtn").addEventListener("click", openImportHelp);
+  $("addOneBtn").addEventListener("click", openAddOneSheet);
+  $("pasteBtn").addEventListener("click", openPasteSheet);
+  $("settingsBtn").addEventListener("click", openSettings);
+  $("refreshBtn").addEventListener("click", async () => { await loadAll(); toast("Actualizado."); });
+  $("vcfInput").addEventListener("change", async (e) => {
+    const files = [...e.target.files];
+    e.target.value = "";
+    if (!files.length) return;
+    let rows = [];
+    for (const f of files) rows = rows.concat(parseVCards(await f.text()));
+    if (!rows.length) { toast("No encontré contactos en ese archivo."); return; }
+    rows.sort((a, b) => a.full_name.localeCompare(b.full_name, "es"));
+    openImportReview(rows, "Contactos del archivo");
+  });
+  $("search").addEventListener("input", (e) => { query = e.target.value; renderList(); });
+  $("filters").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-f]"); if (!b) return;
+    filter = b.dataset.f;
+    $("filters").querySelectorAll(".chip").forEach((x) => x.classList.toggle("on", x === b));
+    renderList();
+  });
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && user) loadAll(); });
+
+  // ---------- auth ----------
+  let mode = "login";
+  function setMode(m) {
+    mode = m;
+    $("tabLogin").classList.toggle("on", m === "login");
+    $("tabSignup").classList.toggle("on", m === "signup");
+    $("authBtn").textContent = m === "login" ? "Entrar" : "Crear cuenta";
+    $("signupNote").classList.toggle("hidden", m !== "signup");
+    $("authPass").autocomplete = m === "login" ? "current-password" : "new-password";
+    $("authMsg").textContent = "";
+  }
+  $("tabLogin").addEventListener("click", () => setMode("login"));
+  $("tabSignup").addEventListener("click", () => setMode("signup"));
+  $("authForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = $("authEmail").value.trim(), password = $("authPass").value;
+    $("authBtn").disabled = true;
+    $("authMsg").textContent = "";
+    try {
+      if (mode === "login") {
+        const { error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) $("authMsg").textContent = /confirm/i.test(error.message) ? "Primero confirma tu correo con el link que te llegó." : "Correo o contraseña incorrectos.";
+      } else {
+        const { data, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: location.href.split("?")[0] } });
+        if (error) $("authMsg").textContent = "No se pudo crear la cuenta: " + error.message;
+        else if (!data.session) $("authMsg").textContent = "Te envié un correo de confirmación. Ábrelo, toca el link y luego vuelve aquí a Entrar.";
+      }
+    } finally { $("authBtn").disabled = false; }
+  });
+
+  async function showFor(session) {
+    user = session ? session.user : null;
+    if (!user) { $("authView").classList.remove("hidden"); $("appView").classList.add("hidden"); return; }
+    const { data: allowed } = await sb.rpc("is_allowed");
+    if (!allowed) {
+      $("authView").classList.remove("hidden"); $("appView").classList.add("hidden");
+      $("authMsg").textContent = "Esta cuenta no tiene acceso a este panel.";
+      await sb.auth.signOut();
+      return;
+    }
+    $("authView").classList.add("hidden"); $("appView").classList.remove("hidden");
+    loadAll();
+  }
+  sb.auth.onAuthStateChange((event, session) => {
+    // defer: calling Supabase inside this callback can deadlock the auth lock
+    if (event === "INITIAL_SESSION" || event === "SIGNED_IN" || event === "SIGNED_OUT") setTimeout(() => showFor(session), 0);
+  });
+})();
+</script>
+</body>
+</html>
