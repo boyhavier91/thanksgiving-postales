@@ -679,11 +679,42 @@
     });
   }
 
+  const hasPicker = "contacts" in navigator && "ContactsManager" in window;
+
+  async function pickContacts() {
+    try {
+      const picked = await navigator.contacts.select(["name", "tel"], { multiple: true });
+      const rows = (picked || []).map((p) => {
+        const full = ((p.name && p.name[0]) || "").trim();
+        const phone = normalizePhone((p.tel || [])[0] || "");
+        return full ? { full_name: full, display_name: firstName(full), phone } : null;
+      }).filter(Boolean);
+      if (!rows.length) { toast("No elegiste ningún contacto."); return; }
+      openImportReview(rows, "Contactos elegidos");
+    } catch (err) {
+      toast("No se pudo abrir tus contactos.", 3500);
+    }
+  }
+
   function openImportHelp() {
     openSheet(`
       <div class="sheet-head"><h3>Importar de tu iPhone</h3><button class="close" data-close type="button">✕</button></div>
+      ${hasPicker ? `
+      <button class="btn primary block" id="hNative" type="button" style="margin-bottom:12px">👥 Elegir de mis contactos</button>
+      <p class="muted" style="margin-bottom:14px">Se abre tu agenda: marca a todas las personas que quieras y toca <b>Listo</b>.</p>
+      ` : `
       <div class="help">
-        <b>Opción rápida: una lista solo para Thanksgiving</b>
+        <b>¿Quieres elegirlos directo de tu agenda?</b>
+        <p class="muted" style="margin:4px 0 6px">Safari lo trae apagado. Actívalo una sola vez:</p>
+        <ol>
+          <li>Abre <b>Ajustes</b> → <b>Apps</b> → <b>Safari</b> → <b>Avanzado</b> → <b>Feature Flags</b>.</li>
+          <li>Activa <b>Contact Picker API</b>.</li>
+          <li>Cierra y vuelve a abrir este panel. Aparecerá el botón <b>Elegir de mis contactos</b>.</li>
+        </ol>
+      </div>
+      `}
+      <div class="help">
+        <b>${hasPicker ? "Otra opción" : "O, sin activar nada"}: una lista solo para Thanksgiving</b>
         <ol>
           <li>Abre <b>Contactos</b> y toca <b>‹ Listas</b> arriba a la izquierda.</li>
           <li>Toca <b>Agregar lista</b>, llámala "Thanksgiving" y añade a las personas.</li>
@@ -692,9 +723,11 @@
         </ol>
         <p class="muted" style="margin-top:8px">También puedes exportar "Todos los contactos" y elegir aquí a quién incluir.</p>
       </div>
-      <button class="btn primary block" id="hPick" type="button">Elegir archivo (.vcf)</button>
+      <button class="btn ${hasPicker ? "" : "primary"} block" id="hPick" type="button">Elegir archivo (.vcf)</button>
     `, (sheet) => {
       sheet.querySelector("#hPick").addEventListener("click", () => { closeSheet(); $("vcfInput").click(); });
+      const nat = sheet.querySelector("#hNative");
+      if (nat) nat.addEventListener("click", () => { closeSheet(); pickContacts(); });
     });
   }
 
