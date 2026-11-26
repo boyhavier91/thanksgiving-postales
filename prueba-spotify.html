@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prueba Spotify</title>
+<meta name="robots" content="noindex">
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100svh; font: 16px/1.45 "Nunito", system-ui, sans-serif; color: #fff;
+    background: linear-gradient(180deg, #2a1530 0%, #5b2338 40%, #b5462a 80%, #f0a04b 100%); background-attachment: fixed;
+    padding: max(20px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+  }
+  main { max-width: 460px; margin: 0 auto; display: grid; gap: 16px; }
+  h1 { font-family: "Great Vibes", cursive; font-weight: 400; font-size: 40px; text-align: center; }
+  .box { background: rgba(20, 8, 20, .45); border: 1px solid rgba(255,255,255,.2); border-radius: 16px; padding: 14px; backdrop-filter: blur(6px); }
+  .box p { font-size: 14px; opacity: .9; }
+  label { display: block; font-weight: 800; font-size: 13px; margin-bottom: 6px; opacity: .9; }
+  input { width: 100%; font: inherit; font-size: 16px; padding: 11px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,.35); background: rgba(255,255,255,.95); color: #222; }
+  button { font: inherit; font-weight: 800; border: 0; border-radius: 12px; padding: 12px 16px; cursor: pointer; }
+  .primary { background: #1db954; color: #fff; width: 100%; margin-top: 10px; }
+  .envelope {
+    margin: 4px auto 0; width: min(78vw, 320px); aspect-ratio: 1.55; border-radius: 10px; position: relative; cursor: pointer;
+    background: linear-gradient(160deg, #f0c98f, #e3b072); box-shadow: 0 18px 30px rgba(0,0,0,.35); animation: float 3s ease-in-out infinite;
+  }
+  .envelope::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, #e8b878, #d79a55); clip-path: polygon(0 0, 100% 0, 50% 58%); border-radius: 10px; }
+  .seal { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 50px; height: 50px; border-radius: 50%; display: grid; place-items: center; font-size: 22px; background: radial-gradient(circle at 35% 35%, #d9402b, #8f1d12 70%); }
+  @keyframes float { 50% { transform: translateY(-8px); } }
+  .tap { display: block; margin: 16px auto 0; background: rgba(42,21,48,.5); color: #ffe7c4; border: 1px solid rgba(255,231,196,.5); border-radius: 999px; padding: 10px 22px; }
+  .result { font-size: 18px; font-weight: 800; text-align: center; }
+  .log { font: 13px/1.4 ui-monospace, Menlo, monospace; opacity: .85; white-space: pre-wrap; margin-top: 8px; }
+  #player { border-radius: 12px; overflow: hidden; min-height: 80px; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Prueba de Spotify 🎵</h1>
+
+  <section class="box" id="step1">
+    <label for="link">1. Pega el link de una canción de Spotify</label>
+    <input id="link" type="url" inputmode="url" placeholder="https://open.spotify.com/track/…" autocomplete="off">
+    <button class="primary" id="prepare" type="button">Preparar prueba</button>
+    <p id="prepMsg" style="margin-top:8px"></p>
+  </section>
+
+  <section class="box hidden" id="step2">
+    <p style="text-align:center;margin-bottom:8px"><b>2. Ahora toca el sobre</b>, como lo haría tu contacto.<br>No toques el reproductor verde.</p>
+    <div class="envelope" id="env" role="button" aria-label="Abrir"><div class="seal">🍁</div></div>
+    <button class="tap" id="tap" type="button">Toca para abrir</button>
+  </section>
+
+  <section class="box hidden" id="step3">
+    <div class="result" id="result">Comprobando…</div>
+    <div class="log" id="log"></div>
+  </section>
+
+  <div id="player"></div>
+  <p style="font-size:12px;opacity:.75;text-align:center">El reproductor de arriba es el de Spotify. Tiene que estar visible para que Spotify permita reproducir.</p>
+</main>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  let controller = null, ready = false, tappedAt = 0, everPlaying = false, lastPos = 0, logLines = [];
+  const log = (m) => { logLines.push(((performance.now() - (tappedAt || performance.now())) / 1000).toFixed(1) + "s  " + m); $("log").textContent = logLines.slice(-12).join("\n"); };
+
+  function toUri(link) {
+    const m = /open\.spotify\.com\/(?:intl-[a-z]{2}\/)?(track|album|playlist|episode)\/([A-Za-z0-9]+)/.exec(link || "");
+    if (m) return "spotify:" + m[1] + ":" + m[2];
+    if (/^spotify:(track|album|playlist|episode):[A-Za-z0-9]+$/.test(link || "")) return link;
+    return null;
+  }
+
+  try { const saved = localStorage.getItem("prueba-spotify-link"); if (saved) $("link").value = saved; } catch (e) {}
+  const qs = new URLSearchParams(location.search).get("s");
+  if (qs) $("link").value = qs;
+
+  let api = null;
+  window.onSpotifyIframeApiReady = (IFrameAPI) => { api = IFrameAPI; $("prepMsg").textContent = ""; };
+
+  $("prepare").addEventListener("click", () => {
+    const uri = toUri($("link").value.trim());
+    if (!uri) { $("prepMsg").textContent = "Ese link no parece de Spotify. Cópialo con ⋯ → Compartir → Copiar enlace."; return; }
+    if (!api) { $("prepMsg").textContent = "Spotify todavía está cargando… intenta en unos segundos."; return; }
+    try { localStorage.setItem("prueba-spotify-link", $("link").value.trim()); } catch (e) {}
+    $("prepMsg").textContent = "Cargando la canción…";
+    $("player").innerHTML = '<div id="embed"></div>';
+    api.createController($("embed"), { uri, width: "100%", height: 152 }, (c) => {
+      controller = c;
+      c.addListener("ready", () => {
+        ready = true;
+        $("prepMsg").textContent = "Lista ✅";
+        $("step2").classList.remove("hidden");
+        $("step2").scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+      c.addListener("playback_update", (e) => {
+        const d = e.data || {};
+        if (!tappedAt) return;
+        log(`Spotify: ${d.isPaused ? "pausado" : "sonando"}${d.isBuffering ? " (cargando)" : ""} · posición ${(d.position / 1000 || 0).toFixed(1)}s de ${(d.duration / 1000 || 0).toFixed(0)}s`);
+        if (!d.isPaused && d.position > lastPos) everPlaying = true;
+        lastPos = d.position || lastPos;
+      });
+    });
+  });
+
+  function open() {
+    if (!ready || tappedAt) return;
+    tappedAt = performance.now();
+    // The important part: ask Spotify to play inside the same tap
+    try { controller.play(); log("Le pedí a Spotify: play()"); } catch (e) { log("play() falló: " + e.message); }
+    $("step2").classList.add("hidden");
+    $("step3").classList.remove("hidden");
+    setTimeout(() => {
+      $("result").textContent = everPlaying
+        ? "✅ ¡Sonó sola! Spotify sí arrancó con el toque del sobre."
+        : "❌ No sonó sola. Safari/Spotify bloqueó el inicio automático; habría que tocar ▶ en el reproductor.";
+    }, 5000);
+  }
+  $("env").addEventListener("click", open);
+  $("tap").addEventListener("click", open);
+})();
+</script>
+<script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
+</body>
+</html>
