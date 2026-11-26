@@ -32,6 +32,8 @@
   .result { font-size: 18px; font-weight: 800; text-align: center; }
   .log { font: 13px/1.4 ui-monospace, Menlo, monospace; opacity: .85; white-space: pre-wrap; margin-top: 8px; }
   #player { border-radius: 12px; overflow: hidden; min-height: 80px; }
+  /* same hiding as the real postcard: rendered at real size, invisible */
+  #player.oculto { position: fixed; left: 0; bottom: 0; width: 300px; height: 80px; opacity: 0; pointer-events: none; }
   .hidden { display: none !important; }
 </style>
 </head>
@@ -77,6 +79,8 @@
   try { const saved = localStorage.getItem("prueba-spotify-link"); if (saved) $("link").value = saved; } catch (e) {}
   const qs = new URLSearchParams(location.search).get("s");
   if (qs) $("link").value = qs;
+  // Hidden player by default (like the postcard); ?visible=1 shows it
+  if (new URLSearchParams(location.search).get("visible") !== "1") $("player").classList.add("oculto");
 
   let api = null;
   window.onSpotifyIframeApiReady = (IFrameAPI) => { api = IFrameAPI; $("prepMsg").textContent = ""; };
