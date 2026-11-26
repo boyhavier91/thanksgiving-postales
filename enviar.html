@@ -256,6 +256,18 @@
   function themeSelectHtml(id, value) {
     return '<select id="' + id + '">' + THEMES_UI.map((t) => '<option value="' + t.k + '"' + (t.k === value ? " selected" : "") + ">" + t.e + " " + t.l + "</option>").join("") + "</select>";
   }
+  // Accepts an open.spotify.com link or a spotify: URI. Returns the URI, "" for empty, or null if invalid.
+  function spotifyUri(v) {
+    v = (v || "").trim();
+    if (!v) return "";
+    const m = /open\.spotify\.com\/(?:intl-[a-z]{2}\/)?(track|album|playlist)\/([A-Za-z0-9]{10,40})/.exec(v);
+    if (m) return "spotify:" + m[1] + ":" + m[2];
+    return /^spotify:(track|album|playlist):[A-Za-z0-9]{10,40}$/.test(v) ? v : null;
+  }
+  function spotifyLink(uri) {
+    const m = /^spotify:(track|album|playlist):(.+)$/.exec(uri || "");
+    return m ? "https://open.spotify.com/" + m[1] + "/" + m[2] : "";
+  }
   function demoLink(theme, lang) {
     const base = new URL("./", location.href); base.search = ""; base.hash = "";
     return base.href + "?demo=1&t=" + theme + "&l=" + (lang || "es");
@@ -263,7 +275,7 @@
 
   let user = null;
   let cards = [];
-  let settings = { signature: "", default_lang: "es", default_theme: "clasica", msg_es: "", msg_en: "" };
+  let settings = { signature: "", default_lang: "es", default_theme: "clasica", msg_es: "", msg_en: "", spotify_by_theme: {} };
   let filter = "all";
   let query = "";
 
@@ -433,7 +445,7 @@
             <button class="mini" data-act="edit" type="button" aria-label="Editar">⋯</button>
           </div>
         </div>
-        <button class="theme-btn" data-act="theme" type="button"><span>${themeOf(c.theme).e} Tema: ${esc(themeOf(c.theme).l)}</span><small>Cambiar ▾</small></button>
+        <button class="theme-btn" data-act="theme" type="button"><span>${themeOf(c.theme).e} Tema: ${esc(themeOf(c.theme).l)}${c.spotify || (settings.spotify_by_theme || {})[c.theme] ? " · 🎵" : ""}</span><small>Cambiar ▾</small></button>
         <button class="ded ${c.dedication ? "" : "empty"}" data-act="ded" type="button">${c.dedication ? "✍️ " + esc(c.dedication) : "✍️ Agregar dedicatoria (opcional)"}</button>
         <div class="send">
           <button class="btn sms" data-act="sms" type="button" ${noPhone ? "disabled" : ""}>💬 SMS</button>
@@ -621,6 +633,7 @@
       <label class="field"><span>Teléfono</span><input id="ePhone" type="tel" value="${esc(c.phone || "")}" placeholder="(305) 555-1234"></label>
       <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:14px"><span class="muted"><b>Idioma</b></span>${segHtml("eLang", lang)}</div>
       <label class="field"><span>Tema de la postal</span>${themeSelectHtml("eTheme", c.theme)}</label>
+      <label class="field"><span>🎵 Canción de Spotify solo para esta persona (opcional)</span><input id="eSpot" type="url" inputmode="url" placeholder="Si lo dejas vacío usa la del tema" value="${esc(spotifyLink(c.spotify))}"></label>
       <div class="row" style="margin-bottom:10px">
         <button class="btn primary" id="eSave" type="button" style="flex:1">Guardar</button>
       </div>
@@ -636,7 +649,9 @@
         const full_name = sheet.querySelector("#eFull").value.trim() || display_name;
         if (!display_name) { toast("El nombre no puede estar vacío."); return; }
         const phone = normalizePhone(sheet.querySelector("#ePhone").value) || null;
-        const ok = await updateCard(c.id, { display_name, full_name, phone, lang, theme: sheet.querySelector("#eTheme").value });
+        const sp = spotifyUri(sheet.querySelector("#eSpot").value);
+        if (sp === null) { toast("Ese link no es de Spotify. Usa ⋯ → Compartir → Copiar enlace."); return; }
+        const ok = await updateCard(c.id, { display_name, full_name, phone, lang, theme: sheet.querySelector("#eTheme").value, spotify: sp || null });
         if (ok) { closeSheet(); toast("Guardado."); }
       });
       sheet.querySelector("#eCopy").addEventListener("click", async () => {
@@ -803,6 +818,11 @@
       <label class="field"><span>Tu firma en la postal</span><input id="sSig" type="text" maxlength="80" value="${esc(settings.signature || "")}" placeholder="ej: Con cariño, Javier"></label>
       <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:14px"><span class="muted"><b>Idioma por defecto</b></span>${segHtml("sLang", lang)}</div>
       <label class="field"><span>Tema por defecto para contactos nuevos</span>${themeSelectHtml("sTheme", settings.default_theme || "clasica")}</label>
+      <div class="help" style="margin-bottom:12px">
+        <b>🎵 Canción de Spotify por tema (opcional)</b>
+        <p class="muted" style="margin:4px 0 10px">Pega el link (en Spotify: ⋯ → Compartir → Copiar enlace). Suena al abrir la postal; quien no tenga Spotify oye un fragmento y luego sigue la música del tema.</p>
+        ${THEMES_UI.map((t) => `<label class="field" style="margin-bottom:8px"><span>${t.e} ${t.l}</span><input type="url" inputmode="url" data-sp="${t.k}" placeholder="Música original del tema" value="${esc(spotifyLink((settings.spotify_by_theme || {})[t.k]))}"></label>`).join("")}
+      </div>
       <label class="field"><span>Mensaje en español</span><textarea id="sEs" maxlength="400">${esc(settings.msg_es || DEFAULT_MSG.es)}</textarea></label>
       <label class="field"><span>Message in English</span><textarea id="sEn" maxlength="400">${esc(settings.msg_en || DEFAULT_MSG.en)}</textarea></label>
       <p class="muted" style="margin:-4px 0 14px">Usa <b>{nombre}</b> y <b>{link}</b>; se reemplazan para cada persona.</p>
@@ -813,7 +833,13 @@
       sheet.querySelector("#sSave").addEventListener("click", async () => {
         const es = sheet.querySelector("#sEs").value.trim(), en = sheet.querySelector("#sEn").value.trim();
         if ((es && !es.includes("{link}")) || (en && !en.includes("{link}"))) { toast("Cada mensaje debe incluir {link}."); return; }
-        const row = { owner_id: user.id, signature: sheet.querySelector("#sSig").value.trim() || null, default_lang: lang, default_theme: sheet.querySelector("#sTheme").value, msg_es: es || null, msg_en: en || null, updated_at: new Date().toISOString() };
+        const spotify_by_theme = {};
+        for (const inp of sheet.querySelectorAll("[data-sp]")) {
+          const u = spotifyUri(inp.value);
+          if (u === null) { toast("El link de " + themeOf(inp.dataset.sp).l + " no es de Spotify."); return; }
+          if (u) spotify_by_theme[inp.dataset.sp] = u;
+        }
+        const row = { owner_id: user.id, spotify_by_theme, signature: sheet.querySelector("#sSig").value.trim() || null, default_lang: lang, default_theme: sheet.querySelector("#sTheme").value, msg_es: es || null, msg_en: en || null, updated_at: new Date().toISOString() };
         const { data, error } = await sb.from("owner_settings").upsert(row).select().single();
         if (error) { toast("No se pudo guardar: " + error.message); return; }
         settings = Object.assign(settings, data);

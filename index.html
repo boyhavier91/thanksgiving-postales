@@ -335,6 +335,12 @@
   .card-lights { width: 100%; height: 34px; display: block; margin-top: -6px; }
   .card-lights circle { animation: bulb 1.8s ease-in-out infinite; }
 
+  .spot {
+    position: fixed; z-index: 7; left: 50%; bottom: max(10px, env(safe-area-inset-bottom)); transform: translateX(-50%);
+    width: min(92vw, 430px); border-radius: 12px; overflow: hidden; box-shadow: 0 10px 24px rgba(0,0,0,.35); animation: fadeIn .5s ease both;
+  }
+  .spot iframe { display: block; }
+  body.has-spot .stage { padding-bottom: 104px; }
   .sound {
     position: fixed; z-index: 8; top: max(14px, env(safe-area-inset-top)); right: 14px; width: 44px; height: 44px; border-radius: 50%;
     border: 1px solid rgba(255,255,255,.35); background: rgba(20, 10, 25, .45); color: #fff; font-size: 19px; backdrop-filter: blur(6px);
@@ -351,6 +357,7 @@
 <div id="scene"></div>
 <div id="particles"></div>
 <button class="sound hidden" id="soundBtn" type="button" aria-label="Music on/off">🔊</button>
+<div class="spot hidden" id="spot"><div id="spotEmbed"></div></div>
 
 <main class="stage">
   <div id="intro"></div>
@@ -764,16 +771,63 @@
     });
   }
 
+  // ---------- Spotify: plays the chosen song on the opening tap, then hands over to the theme music ----------
+  const SPOTIFY_URI = /^spotify:(track|album|playlist):[A-Za-z0-9]{10,40}$/;
+  const Spot = (() => {
+    let controller = null, ready = false, wanted = false, played = false, done = false, playing = false, onEnd = null;
+    function finish() {
+      if (done) return;
+      done = true; playing = false;
+      if (onEnd) onEnd();
+    }
+    function load(uri, endCb) {
+      onEnd = endCb;
+      document.body.classList.add("has-spot");
+      $("spot").classList.remove("hidden");
+      window.onSpotifyIframeApiReady = (API) => {
+        API.createController($("spotEmbed"), { uri, width: "100%", height: 80 }, (c) => {
+          controller = c;
+          c.addListener("ready", () => { ready = true; if (wanted && !played) { try { c.play(); } catch (e) {} } });
+          c.addListener("playback_update", (e) => {
+            const d = e.data || {};
+            if (!d.isPaused && d.position > 0) { played = true; playing = true; }
+            else if (played && d.isPaused) finish();
+          });
+        });
+      };
+      const sc = document.createElement("script");
+      sc.src = "https://open.spotify.com/embed/iframe-api/v1"; sc.async = true;
+      sc.onerror = () => { if (wanted) finish(); };
+      document.head.appendChild(sc);
+    }
+    // must be called inside the user's tap
+    function play() {
+      wanted = true;
+      if (ready) { try { controller.play(); } catch (e) {} }
+      setTimeout(() => { if (!played) finish(); }, 5000);
+    }
+    function stop() { if (controller && playing) { try { controller.pause(); } catch (e) {} } finish(); }
+    return { load, play, stop, isPlaying: () => playing, wasWanted: () => wanted };
+  })();
+
   const soundBtn = $("soundBtn");
   function paintSound() { soundBtn.textContent = Music.isMuted() ? "🔇" : "🔊"; }
-  soundBtn.addEventListener("click", () => { Music.toggle(); paintSound(); });
+  soundBtn.addEventListener("click", () => {
+    const nowMuted = Music.toggle();
+    if (nowMuted && Spot.isPlaying()) Spot.stop();
+    paintSound();
+  });
+  function startAudio() {
+    Music.unlock();
+    if (data.spotify) Spot.play();
+  }
 
   // ---------- state & render ----------
-  let data = { display_name: "", dedication: "", lang: "en", signature: "", theme: "clasica" };
+  let data = { display_name: "", dedication: "", lang: "en", signature: "", theme: "clasica", spotify: "" };
   let opened = false;
 
   function showCard() {
-    Music.start(document.body.dataset.theme);
+    if (!data.spotify) Music.start(document.body.dataset.theme);
     soundBtn.classList.remove("hidden"); paintSound();
     $("card").classList.add("show");
     document.body.classList.add("neon-on");
@@ -797,7 +851,7 @@
       const go = () => {
         if (!ready || opened) return;
         opened = true;
-        Music.unlock();
+        startAudio();
         const f = document.createElement("div"); f.className = "flash"; document.body.appendChild(f);
         setTimeout(() => f.remove(), 600);
         intro.innerHTML = "";
@@ -815,7 +869,7 @@
       const go = () => {
         if (opened) return;
         opened = true;
-        Music.unlock();
+        startAudio();
         box.classList.add("called", "moving");
         const floors = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "🦃"];
         let i = 0;
@@ -843,7 +897,7 @@
       const go = () => {
         if (opened) return;
         opened = true;
-        Music.unlock();
+        startAudio();
         wrap.classList.add("opening");
         setTimeout(() => wrap.classList.add("gone"), 1000);
         setTimeout(() => { intro.innerHTML = ""; showCard(); }, 1550);
@@ -884,6 +938,12 @@
     $("signature").style.display = data.signature ? "block" : "none";
     $("replayLabel").textContent = L.replay;
 
+    const link = /open\.spotify\.com\/(?:intl-[a-z]{2}\/)?(track|album|playlist)\/([A-Za-z0-9]+)/.exec(data.spotify || "");
+    if (link) data.spotify = "spotify:" + link[1] + ":" + link[2];
+    if (data.spotify && SPOTIFY_URI.test(data.spotify)) {
+      Spot.load(data.spotify, () => Music.start(document.body.dataset.theme));
+    } else data.spotify = "";
+
     opened = false;
     $("card").classList.remove("show");
     document.body.classList.remove("neon-on");
@@ -903,6 +963,7 @@
       const t = THEMES[params.get("t")] ? params.get("t") : "clasica";
       const l = params.get("l") === "en" ? "en" : "es";
       data = { display_name: params.get("n") || "María", lang: l, theme: t, signature: l === "en" ? "Love, Javier" : "Con cariño, Javier",
+        spotify: params.get("sp") || "",
         dedication: l === "en" ? "Thank you for always being there, for the laughs and the good times. Wishing you a table full of love and your favorite desserts." : DEMO[t] };
       render(); return;
     }
@@ -918,6 +979,7 @@
     } catch (e) { /* show the generic card */ }
     data.dedication = data.dedication || "";
     data.signature = data.signature || "";
+    data.spotify = data.spotify || "";
     render();
   }
   load();
