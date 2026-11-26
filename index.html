@@ -17,7 +17,7 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Caveat:wght@600;700&family=Fredoka:wght@500;700&family=Great+Vibes&family=Nunito:wght@400;600;800&family=Playfair+Display:wght@700;900&family=VT323&family=Yellowtail&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Dancing+Script:wght@700&family=Great+Vibes&family=Lora:ital,wght@0,400;0,500;1,400&family=Montserrat:wght@500;600;800&family=Nunito:wght@400;600;800&family=Orbitron:wght@700&family=Pacifico&family=Playfair+Display:wght@700;900&family=Poppins:wght@600;800&family=VT323&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
@@ -470,6 +470,103 @@
   .elev.open .elev-doors::before { animation: spill 1.4s var(--ease-out) forwards; }
   @keyframes spill { 0% { opacity: 0; width: 6px; } 15% { opacity: 1; } 100% { opacity: 0; width: 100%; } }
 
+
+  /* ===================== v3: illustrated design (based on the ChatGPT mockups) ===================== */
+  html body[data-theme="clasica"]  { --plain: #fdeed0; --ink: #6b3f1f; --title: #6b3f1f; --name: #b22222; --body: #5a3a22; --btn: #6b3f1f; --f-title: "Dancing Script"; --f-name: "Playfair Display"; --f-body: "Lora"; --halo: rgba(255, 246, 228, .95); }
+  html body[data-theme="neon"]     { --plain: #2f077d; --ink: #ff6ec7; --title: #ff6ec7; --name: #00eeff; --body: #f3e8ff; --btn: #2a0b62; --f-title: "Pacifico"; --f-name: "Pacifico"; --f-body: "Montserrat"; --halo: rgba(255, 0, 136, .75); }
+  html body[data-theme="familia"]  { --plain: #fee5bd; --ink: #3b2f2f; --title: #3b2f2f; --name: #a0391c; --body: #3b2f2f; --btn: #5a3a28; --f-title: "Dancing Script"; --f-name: "Playfair Display"; --f-body: "Lora"; --halo: rgba(255, 240, 214, .95); }
+  html body[data-theme="besties"]  { --plain: #fcf8f9; --ink: #4b2a9e; --title: #4b2a9e; --name: #6a4cff; --body: #2d2d2d; --btn: #6a4cff; --f-title: "Pacifico"; --f-name: "Poppins"; --f-body: "Montserrat"; --halo: rgba(255, 255, 255, .95); }
+  html body[data-theme="elevador"] { --plain: #eeeeee; --ink: #1e3a8a; --title: #1e3a8a; --name: #1e3a8a; --body: #111827; --btn: #1e3a8a; --f-title: "Dancing Script"; --f-name: "Montserrat"; --f-body: "Lora"; --halo: rgba(255, 255, 255, .95); }
+  html body[data-theme="amigos"]   { --plain: #feefdb; --ink: #3a2418; --title: #3a2418; --name: #e4572e; --body: #1b1b1b; --btn: #6a1b9a; --f-title: "Pacifico"; --f-name: "Playfair Display"; --f-body: "Lora"; --halo: rgba(255, 244, 228, .95); }
+
+  /* full-screen illustration behind everything; it softens once the card is open */
+  .bgimg { position: absolute; inset: -2px; background-color: #1d1418; transition: filter 1s ease, transform 1.4s var(--ease-out); }
+  body.revealed .bgimg { filter: blur(9px) brightness(.6) saturate(1.1); transform: scale(1.08); }
+
+  /* the card: illustration on top, plain paper colour below, text laid over it */
+  html body .tilt-wrap { width: min(94vw, 440px); }
+  html body[data-theme] .card {
+    display: none; flex-direction: column; align-items: center; text-align: center;
+    min-height: min(calc(100svh - 96px), 860px); padding: 28px 22px 22px; border: 0; border-radius: 24px; overflow: hidden;
+    background: var(--plain); color: var(--body); backdrop-filter: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,.14), 0 12px 24px rgba(0,0,0,.2), 0 40px 80px rgba(0,0,0,.38);
+  }
+  html body[data-theme] .card.show { display: flex; animation: rise .9s cubic-bezier(.2, .9, .25, 1.15) both; }
+  html body[data-theme] .card::before, html body[data-theme] .card::after { display: none; }
+  .card-bg { position: absolute; left: 0; top: 0; width: 100%; z-index: -1; background-repeat: no-repeat; pointer-events: none; }
+  html body[data-theme] .card .art, html body[data-theme] .card .kicker, html body[data-theme] .card .tagline,
+  html body[data-theme] .card .extra, html body[data-theme] .card .divider, html body[data-theme] #footer { display: none !important; }
+  html body[data-theme] .grain { opacity: 0; }
+  html body[data-theme="clasica"] .grain, html body[data-theme="familia"] .grain { opacity: .18; }
+
+  /* title over the illustration, with a soft halo so it stays readable */
+  html body[data-theme] .happy, html body[data-theme] .thanks {
+    font-family: var(--f-title), cursive; font-weight: 700; color: var(--title); letter-spacing: 0; text-transform: none;
+    text-shadow: none; filter: drop-shadow(0 0 7px var(--halo)) drop-shadow(0 0 2px var(--halo));
+  }
+  html body[data-theme] .happy { font-size: clamp(48px, 14.5vw, 66px); line-height: 1; margin-top: 0; }
+  html body[data-theme] .thanks { font-size: clamp(38px, 11.6vw, 56px); line-height: 1.15; white-space: nowrap; }
+  html body[data-theme="neon"] .happy, html body[data-theme="neon"] .thanks { filter: drop-shadow(0 0 6px rgba(255,0,136,.9)) drop-shadow(0 0 16px rgba(255,0,136,.55)); }
+  html body[data-theme="neon"] .card.show .happy .ch, html body[data-theme="neon"] .card.show .thanks .ch {
+    color: transparent; -webkit-background-clip: text; background-clip: text; background-image: linear-gradient(180deg, #ff6ec7 10%, #ffcc00 95%);
+  }
+
+  /* name, dedication, signature and button sit in the plain lower area */
+  html body[data-theme] .name {
+    margin-top: auto; padding-top: 12px; font-family: var(--f-name), serif; font-weight: 900; color: var(--name);
+    font-size: clamp(44px, 13.5vw, 60px); line-height: 1.05; text-shadow: none; letter-spacing: -.01em;
+  }
+  html body[data-theme="neon"] .name, html body[data-theme="besties"] .name { font-weight: 400; }
+  html body[data-theme="besties"] .name { font-weight: 800; }
+  html body[data-theme="elevador"] .name { font-weight: 800; letter-spacing: .01em; }
+  html body[data-theme="neon"] .name { text-shadow: 0 0 8px rgba(0,238,255,.85), 0 0 22px rgba(255,0,136,.6); }
+  html body[data-theme] .swash { color: var(--name); opacity: .9; }
+  html body[data-theme] .dedication { font-family: var(--f-body), serif; color: var(--body); font-size: 16.5px; line-height: 1.55; margin-top: 8px; max-width: 32ch; }
+  html body[data-theme] .signature { font-family: "Dancing Script", cursive; font-weight: 700; color: var(--title); font-size: 27px; margin-top: 10px; text-shadow: none; }
+  html body[data-theme="neon"] .signature { font-family: "Pacifico", cursive; font-weight: 400; color: #ffcc00; font-size: 22px; text-shadow: 0 0 8px rgba(255,204,0,.6); }
+  html body[data-theme] .actions { margin-top: 16px; }
+  html body[data-theme] .actions button {
+    font: 700 15px "Montserrat", sans-serif; color: #fff; background: var(--btn); border: 0; padding: 11px 26px; border-radius: 999px;
+    box-shadow: 0 6px 16px rgba(0,0,0,.22);
+  }
+  html body[data-theme="neon"] .actions button { border: 1.5px solid #ff6ec7; box-shadow: 0 0 14px rgba(255,0,136,.6); }
+
+  @media (max-height: 740px) {
+    html body[data-theme] .happy { font-size: clamp(42px, 12.5vw, 56px); }
+    html body[data-theme] .thanks { font-size: clamp(34px, 10.4vw, 48px); }
+    html body[data-theme] .name { font-size: clamp(38px, 11.5vw, 50px); }
+    html body[data-theme] .dedication { font-size: 15.5px; line-height: 1.5; }
+    html body[data-theme] .signature { font-size: 24px; margin-top: 6px; }
+    html body[data-theme] .actions { margin-top: 12px; }
+    html body[data-theme] .card { padding: 22px 18px 18px; }
+  }
+
+  /* intros: envelope in warm cream with a red wax seal */
+  html body[data-theme] { --env-a: #f6ead3; --env-b: #ead6b3; --env-back: #dcc49c; --flap-a: #efdcbc; --flap-b: #e2c79e; --seal-a: #c0322a; --seal-b: #7a120d; --env-ink: #6b3f1f; --tap-ink: #fff4e2; }
+  html body[data-theme] .tap { background: rgba(20, 12, 10, .62); border-color: rgba(255,244,226,.45); font-family: "Montserrat", sans-serif; font-weight: 600; }
+  .envelope-wrap { margin-top: 18vh; }
+
+  /* neon: loading screen sits low so the car and skyline stay visible */
+  html body[data-theme="neon"] .loading { place-content: end center; padding-bottom: max(7vh, 40px); gap: 12px; }
+  html body[data-theme="neon"] .ld-title { display: none; }
+  html body[data-theme="neon"] .ld-for { background: rgba(20, 2, 50, .55); padding: 4px 12px; border-radius: 6px; }
+
+  /* besties: tap takes the photo */
+  .flash-intro { position: fixed; left: 0; right: 0; bottom: max(8vh, 40px); z-index: 5; display: grid; justify-items: center; cursor: pointer; }
+
+  /* elevator: the painted doors split and slide open, warm light behind them */
+  .elev3 { position: fixed; inset: 0; z-index: 5; transition: opacity .6s ease; }
+  .elev3.fade { opacity: 0; pointer-events: none; }
+  .door-box { position: absolute; overflow: hidden; background: radial-gradient(ellipse at 50% 38%, #fff6dc 0%, #e8c88e 45%, #7a6040 100%); }
+  .door3 { position: absolute; top: 0; height: 100%; width: 50%; background-repeat: no-repeat; transition: transform 1.5s cubic-bezier(.6, 0, .3, 1); }
+  .door3.l { left: 0; box-shadow: inset -1px 0 0 rgba(0,0,0,.35); }
+  .door3.r { right: 0; box-shadow: inset 1px 0 0 rgba(255,255,255,.35); }
+  .elev3.open .door3.l { transform: translateX(-100%); }
+  .elev3.open .door3.r { transform: translateX(100%); }
+  .call3 { position: absolute; left: 0; right: 0; bottom: max(5vh, 28px); display: grid; justify-items: center; gap: 10px; cursor: pointer; }
+  .elev3.called .call-btn { color: #fff; background: radial-gradient(circle at 40% 35%, #ffd27a, #ff9d00); box-shadow: 0 0 22px rgba(255,170,0,.9); }
+  .elev3.open .call3 { opacity: 0; transition: opacity .3s; }
+
   @media (prefers-reduced-motion: reduce) {
     .name { -webkit-mask-image: none; mask-image: none; }
     .swash path { stroke-dashoffset: 0; }
@@ -489,6 +586,7 @@
   <div id="intro"></div>
   <div class="tilt-wrap"><div class="tilt" id="tilt">
   <article class="card" id="card" aria-live="polite">
+    <div class="card-bg" id="cardBg" aria-hidden="true"></div>
     <div class="art" id="art"></div>
     <div class="kicker" id="kicker"></div>
     <div class="happy" id="happy"></div>
@@ -520,6 +618,74 @@
   const cfg = window.APP_CONFIG;
   const $ = (id) => document.getElementById(id);
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ---------- illustrations: one sprite sheet (img/escenas.webp, 1024x1536) holding all 12 scenes ----------
+  const SHEET = "img/escenas.webp", SHEET_W = 1024, SHEET_H = 1536;
+  const TILES = {
+    "clasica-intro": [2, 2, 249, 505], "clasica-card": [259, 2, 247, 505], "neon-intro": [518, 2, 247, 505], "neon-card": [774, 2, 248, 505],
+    "familia-intro": [2, 517, 249, 502], "familia-card": [259, 517, 247, 502], "besties-intro": [518, 517, 247, 502], "besties-card": [774, 517, 248, 502],
+    "elevador-intro": [2, 1029, 249, 505], "elevador-card": [259, 1029, 247, 505], "amigos-intro": [518, 1029, 247, 505], "amigos-card": [774, 1029, 248, 505],
+  };
+  const ELEV_DOORS = [48, 52, 196, 396]; // door rectangle inside the elevator tile (x0, y0, x1, y1)
+  // mode "cover": fill the element, centred. mode "top": fit the width, anchored at the top (element height is set to the tile height).
+  function tileGeom(key, W, H, mode) {
+    const [x, y, w, h] = TILES[key];
+    const sc = mode === "top" ? W / w : Math.max(W / w, H / h);
+    const ox = (W - w * sc) / 2, oy = mode === "top" ? 0 : (H - h * sc) / 2;
+    return { x, y, w, h, sc, ox, oy };
+  }
+  function paintTile(el, key, mode, W, H) {
+    if (!el || !TILES[key]) return;
+    W = W || el.clientWidth; H = H || el.clientHeight;
+    if (!W || !H) return;
+    const g = tileGeom(key, W, H, mode);
+    if (mode === "top") el.style.height = Math.ceil(g.h * g.sc) + "px";
+    el.style.backgroundImage = "url(" + SHEET + ")";
+    el.style.backgroundSize = SHEET_W * g.sc + "px " + SHEET_H * g.sc + "px";
+    el.style.backgroundPosition = (g.ox - g.x * g.sc) + "px " + (g.oy - g.y * g.sc) + "px";
+    return g;
+  }
+  function paintScene() { paintTile($("bgimg"), document.body.dataset.theme + "-intro", "cover"); }
+  // The card tile is illustrated in its top ~47% and plain below. Fit it to the card width, let the
+  // illustration cover at most half the card (cropping its top on short phones), and fade its lower edge
+  // into the card's plain colour so the text below always sits on a clean background.
+  function paintCard() {
+    const c = $("card"), el = $("cardBg"), key = document.body.dataset.theme + "-card";
+    const W = c.clientWidth, H = c.clientHeight;
+    if (!W || !H || !TILES[key]) return;
+    const [x, y, w, h] = TILES[key], sc = W / w;
+    const art = h * .47 * sc, A = Math.min(art, H * .5), shift = art - A;
+    el.style.top = -shift + "px";
+    el.style.height = (shift + A) + "px";
+    el.style.backgroundImage = "url(" + SHEET + ")";
+    el.style.backgroundSize = SHEET_W * sc + "px " + SHEET_H * sc + "px";
+    el.style.backgroundPosition = (-x * sc) + "px " + (-y * sc) + "px";
+    const mask = "linear-gradient(to bottom, #000 0, #000 " + (shift + A * .7) + "px, transparent " + (shift + A) + "px)";
+    el.style.webkitMaskImage = mask; el.style.maskImage = mask;
+  }
+  function layoutDoors() {
+    const box = $("doorBox"); if (!box) return;
+    const W = innerWidth + 4, H = innerHeight + 4;
+    const g = tileGeom("elevador-intro", W, H, "cover");
+    const [dx0, dy0, dx1, dy1] = ELEV_DOORS;
+    const left = g.ox + dx0 * g.sc - 2, top = g.oy + dy0 * g.sc - 2, w = (dx1 - dx0) * g.sc, h = (dy1 - dy0) * g.sc;
+    Object.assign(box.style, { left: left + "px", top: top + "px", width: w + "px", height: h + "px" });
+    const bx = g.ox - g.x * g.sc - 2, by = g.oy - g.y * g.sc - 2, size = SHEET_W * g.sc + "px " + SHEET_H * g.sc + "px";
+    [["doorL", 0], ["doorR", w / 2]].forEach(([id, off]) => {
+      const d = $(id);
+      d.style.backgroundImage = "url(" + SHEET + ")"; d.style.backgroundSize = size;
+      d.style.backgroundPosition = (bx - left - off) + "px " + (by - top) + "px";
+    });
+  }
+  addEventListener("resize", () => { paintScene(); if ($("card").classList.contains("show")) paintCard(); layoutDoors(); });
+  function shutter() {
+    const ctx = Music.unlock(); if (!ctx) return;
+    const len = Math.floor(ctx.sampleRate * .09), buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+    const src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    src.buffer = buf; f.type = "highpass"; f.frequency.value = 1800; g.gain.value = .5;
+    src.connect(f).connect(g).connect(ctx.destination); src.start();
+  }
 
   const MAPLE = "M12 0 l2.2 5.2 l3.6 -1.6 l-1 4.4 l4.6 -.4 l-3 3.4 l3.4 2.4 l-5.2 .6 l.8 4.4 l-4.2 -2.6 l-.6 4.8 h-1.2 l-.6 -4.8 l-4.2 2.6 l.8 -4.4 l-5.2 -.6 l3.4 -2.4 l-3 -3.4 l4.6 .4 l-1 -4.4 l3.6 1.6 z";
   const OAK = "M12 0 C 16 4, 18 8, 15 11 C 19 12, 19 16, 14 16 C 16 20, 13 22, 12 24 C 11 22, 8 20, 10 16 C 5 16, 5 12, 9 11 C 6 8, 8 4, 12 0 z";
@@ -601,7 +767,7 @@
       tagline: { es: "En familia todo sabe mejor", en: "Everything tastes better with family" },
     },
     besties: {
-      intro: "envelope", seal: "💛", particles: { kinds: ["confetti", "heart"], colors: ["#e0457b", "#8b5cf6", "#f59e0b", "#10b981", "#3b82f6"], count: 34 },
+      intro: "flash", seal: "💛", particles: { kinds: ["confetti", "heart"], colors: ["#e0457b", "#8b5cf6", "#f59e0b", "#10b981", "#3b82f6"], count: 34 },
       scene: () => `<div class="doodles">${doodlesHtml()}</div>`,
       art: () => `<div class="photo"><div class="duo"><span>🦃</span><span>💛</span><span>🦃</span></div><div class="sticker">BFF</div><div class="sticker s2">✨ 2026</div></div>`,
       tagline: { es: "Mejores amigos para siempre", en: "Best friends forever" },
@@ -622,9 +788,9 @@
   };
 
   const LABELS = {
-    en: { tap: "Tap to open", start: "▶ Tap to start", call: "Tap to call the elevator", replay: "Replay", to: "For you", aria: "Open card", loading: "Loading mission…", edition: "SPECIAL EDITION",
+    en: { tap: "👆 Tap to open", photo: "📸 Tap to take the photo", start: "▶ Tap to start", call: "🛗 Tap to call the elevator", replay: "Replay", to: "For you", aria: "Open card", loading: "Loading mission…", edition: "SPECIAL EDITION",
       tips: ["Tip: save room for dessert.", "Tip: the turkey won't cook itself.", "Tip: the post-dinner nap is mandatory."] },
-    es: { tap: "Toca para abrir", start: "▶ Toca para empezar", call: "Toca para llamar el elevador", replay: "Ver de nuevo", to: "Para ti", aria: "Abrir postal", loading: "Cargando misión…", edition: "EDICIÓN ESPECIAL",
+    es: { tap: "👆 Toca para abrir", photo: "📸 Toca para tomar la foto", start: "▶ Toca para empezar", call: "🛗 Toca para llamar el elevador", replay: "Ver de nuevo", to: "Para ti", aria: "Abrir postal", loading: "Cargando misión…", edition: "EDICIÓN ESPECIAL",
       tips: ["Consejo: guarda espacio para el postre.", "Consejo: el pavo no se cocina solo.", "Consejo: la siesta después de comer es obligatoria."] },
   };
 
@@ -1085,6 +1251,8 @@
     if (!data.spotify) Music.start(document.body.dataset.theme);
     soundBtn.classList.remove("hidden"); document.body.classList.add("sound-on"); paintSound();
     $("card").classList.add("show");
+    document.body.classList.add("revealed");
+    paintCard();
     document.body.classList.add("neon-on");
     revealFx(document.body.dataset.theme);
     Tilt.start();
@@ -1116,34 +1284,40 @@
       $("introBox").addEventListener("click", go);
       $("introBox").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
     } else if (T.intro === "elevator") {
-      intro.innerHTML = `<div class="elev" id="introBox">
-        <div class="elev-display"><span class="arr">▲</span><span id="floor">1</span></div>
-        <div class="elev-frame"><div class="elev-doors"><div class="door l"></div><div class="door r"></div></div></div>
-        <div class="elev-call" id="callBox" role="button" tabindex="0" aria-label="${L.call}"><div class="call-btn">▲</div><div class="tap">${L.call}</div></div>
+      intro.innerHTML = `<div class="elev3" id="introBox">
+        <div class="door-box" id="doorBox"><div class="door3 l" id="doorL"></div><div class="door3 r" id="doorR"></div></div>
+        <div class="call3" id="callBox" role="button" tabindex="0" aria-label="${L.call}"><div class="call-btn">▲</div><div class="tap">${L.call}</div></div>
       </div>`;
+      layoutDoors();
       const box = $("introBox");
       const go = () => {
         if (opened) return;
         opened = true;
         startAudio();
-        box.classList.add("called", "moving");
-        const floors = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "🦃"];
-        let i = 0;
-        const step = reduce ? 0 : 230;
-        const t = setInterval(() => {
-          i++;
-          $("floor").textContent = floors[Math.min(i, floors.length - 1)];
-          if (i >= floors.length - 1) {
-            clearInterval(t);
-            box.classList.remove("moving");
-            chime();
-            setTimeout(() => { showCard(); box.classList.add("open"); }, reduce ? 0 : 350);
-            setTimeout(() => { intro.innerHTML = ""; }, reduce ? 50 : 2300);
-          }
-        }, step);
+        box.classList.add("called");
+        setTimeout(() => {
+          chime();
+          box.classList.add("open");
+          setTimeout(() => { showCard(); box.classList.add("fade"); }, reduce ? 0 : 900);
+          setTimeout(() => { intro.innerHTML = ""; }, reduce ? 50 : 1700);
+        }, reduce ? 0 : 1100);
       };
       $("callBox").addEventListener("click", go);
       $("callBox").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+    } else if (T.intro === "flash") {
+      intro.innerHTML = `<div class="flash-intro" id="introBox" role="button" tabindex="0" aria-label="${L.aria}"><div class="tap">${L.photo}</div></div>`;
+      const go = () => {
+        if (opened) return;
+        opened = true;
+        startAudio();
+        shutter();
+        const f = document.createElement("div"); f.className = "flash"; document.body.appendChild(f);
+        setTimeout(() => f.remove(), 600);
+        intro.innerHTML = "";
+        setTimeout(showCard, reduce ? 0 : 180);
+      };
+      $("introBox").addEventListener("click", go);
+      $("introBox").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
     } else {
       intro.innerHTML = `<div class="intro envelope-wrap" id="introBox" role="button" tabindex="0" aria-label="${L.aria}">
         <div class="envelope"><div class="env-back"></div><div class="env-peek"><span>Happy Thanksgiving</span></div><div class="env-front"></div><div class="env-flap"></div>
@@ -1171,7 +1345,8 @@
     const L = LABELS[lang];
     document.body.dataset.theme = theme;
     document.documentElement.lang = lang;
-    $("scene").innerHTML = T.scene() + '<div class="vignette"></div>';
+    $("scene").innerHTML = '<div class="bgimg" id="bgimg"></div><div class="vignette"></div>';
+    paintScene();
     FX.setTheme(T.particles);
     if (["clasica", "familia", "elevador", "amigos"].includes(theme)) document.body.dataset.sheen = "1"; else delete document.body.dataset.sheen;
 
